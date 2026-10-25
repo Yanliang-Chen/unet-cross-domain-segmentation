@@ -1,0 +1,22 @@
+# Python / IDE
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Private data and large training artifacts
+data/
+runs/
+checkpoints/
+*.pth
+*.pt
+*.ckpt
+*.onnx
+
+# Local credentials and machine-specific paths
+.env
+config.local.yaml
