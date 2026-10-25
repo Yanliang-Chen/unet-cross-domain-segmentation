@@ -68,10 +68,12 @@ sample_id,group_id
 Or use `frame_id,sequence_id` columns from a dataset distribution, after checking that IDs match image filenames. Then run:
 
 ```bash
-python -m scripts.prepare_polyp_data --source data/raw/kvasir-seg --target data/raw/cvc-clinicdb --target-groups-csv data/raw/cvc-clinicdb/metadata.csv
+python -m scripts.prepare_polyp_data --source data/raw/kvasir-seg --target data/raw/cvc-clinicdb --target-groups-csv data/raw/cvc-clinicdb/metadata.csv --require-target-groups
 ```
 
-If you lack sequence identifiers, omit `--target-groups-csv` for an **exploratory** image-level split only; adjacent video frames may appear in both target partitions and overstate generalization. The script refuses to overwrite a populated output folder. By default: 80/20 source train/validation, 30/70 target selection/test (with group fractions approximate). Keep the seed and split manifest fixed for the study.
+If source patient identifiers are available, also pass `--source-groups-csv <CSV>` using the same `sample_id,group_id` format. If you lack reliable target sequence identifiers, omit both `--target-groups-csv` and `--require-target-groups` for an **exploratory** image-level split only; adjacent video frames may appear in both target partitions and overstate generalization. Never infer video IDs from consecutive filenames without source documentation.
+
+The preparation script checks image/mask pairing, dimensions and nonempty masks, rejects exact duplicate images crossing splits, and stages output atomically. It writes `split_manifest.csv` with split, sample ID, group ID and image SHA-256. It refuses to overwrite populated output. By default: 80/20 source train/validation, 30/70 target selection/test (with group fractions approximate). Keep the seed and split manifest fixed for the study.
 
 ### Synthetic installation check
 
