@@ -53,7 +53,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", nargs="+", required=True,
                         help="Run directories containing candidate checkpoints")
-    parser.add_argument("--target-images", default="data/polyp/target_select/images")
+    parser.add_argument("--target-images", default="data/polyp_png/target_select/images")
     parser.add_argument("--output", default="runs/selection.json")
     parser.add_argument("--tolerance", type=float, default=0.03,
                         help="Maximum permitted source Dice drop from best candidate")

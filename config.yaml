@@ -1,7 +1,7 @@
 # Example experiment: Kvasir-SEG source, CVC-ClinicDB target.
 # Run prepare_polyp_data.py before training on real images.
 seed: 42
-data_dir: data/polyp
+data_dir: data/polyp_png
 run_dir: runs/unet
 architecture: unet
 image_size: 256
