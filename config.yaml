@@ -1,13 +1,15 @@
-# Binary semantic segmentation baseline
+# Example experiment: Kvasir-SEG source, CVC-ClinicDB target.
+# Run prepare_polyp_data.py before training on real images.
 seed: 42
-data_dir: data/demo
-run_dir: runs/unet_baseline
-image_size: 128
+data_dir: data/polyp
+run_dir: runs/unet
+architecture: unet
+image_size: 256
 input_channels: 3
 base_channels: 16
-batch_size: 4
+batch_size: 8
 num_workers: 0
-learning_rate: 0.001
+learning_rate: 0.0003
 weight_decay: 0.0001
-epochs: 20
-amp_cuda: false
+epochs: 30
+amp_cuda: true
