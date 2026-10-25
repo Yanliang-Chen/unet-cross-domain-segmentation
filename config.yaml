@@ -1,0 +1,13 @@
+# Binary semantic segmentation baseline
+seed: 42
+data_dir: data/demo
+run_dir: runs/unet_baseline
+image_size: 128
+input_channels: 3
+base_channels: 16
+batch_size: 4
+num_workers: 0
+learning_rate: 0.001
+weight_decay: 0.0001
+epochs: 20
+amp_cuda: false
