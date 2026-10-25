@@ -2,7 +2,7 @@
 
 A small, reproducible research starting point for **binary polyp segmentation**. Train a standard U-Net on labeled Kvasir-SEG images, use **unlabeled CVC-ClinicDB images** to choose one candidate checkpoint, and only then evaluate on held-out CVC-ClinicDB masks.
 
-The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md). It distinguishes planned analyses from features already implemented.
+The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [实验.md](实验.md). It distinguishes planned analyses from features already implemented.
 
 ## Research question
 
@@ -88,11 +88,11 @@ python evaluate.py --selection runs/demo_selection.json --data-dir data/demo --s
 
 ### Current single-seed prototype
 
-These commands exercise the existing implementation. They do not yet run all augmentations, seeds, confidence ablations or metrics in [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md). Freeze the protocol before evaluating real target-test labels.
+These commands exercise the existing implementation. They do not yet run all augmentations, seeds, confidence ablations or metrics in [实验.md](实验.md). Freeze the protocol before evaluating real target-test labels. On this Windows machine, use the audited PNG staging directory `data/polyp_png`; the TIFF staging directory is not readable by the current Pillow installation.
 
 ```bash
 python train.py --config config.yaml
-python select_model.py --runs runs/unet --target-images data/polyp/target_select/images --output runs/selection.json
+python select_model.py --runs runs/unet --target-images data/polyp_png/target_select/images --output runs/selection.json
 python evaluate.py --selection runs/selection.json --split target_test --output runs/selected_target.json
 python evaluate.py --checkpoint runs/unet/best_source.pt --split target_test --output runs/source_baseline_target.json
 ```
