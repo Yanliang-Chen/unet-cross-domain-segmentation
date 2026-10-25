@@ -1,10 +1,14 @@
 """Stage paired datasets without exposing target selection masks to the selector."""
 import argparse
 import csv
+import hashlib
 import random
 import shutil
+import tempfile
 from collections import defaultdict
 from pathlib import Path
+
+from PIL import Image
 
 from datasets.files import index_images
 
@@ -74,6 +78,46 @@ def read_groups(path):
     return groups
 
 
+def validate_pairs(items):
+    """Reject corrupt or mismatched polyp image/mask pairs before staging."""
+    for image, mask in items:
+        with Image.open(image) as opened:
+            opened.load()
+            image_size = opened.size
+        with Image.open(mask) as opened:
+            opened.load()
+            if opened.size != image_size:
+                raise ValueError(f"Image/mask dimensions differ: {image}, {mask}")
+            foreground = opened.convert("L").point(lambda value: 255 if value > 127 else 0)
+            if foreground.getbbox() is None:
+                raise ValueError(f"Empty polyp mask after thresholding: {mask}")
+
+
+def file_hash(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def image_hashes_by_split(splits):
+    """Catch exact duplicate images crossing train/validation or selection/test."""
+    seen = {}
+    hashes = {}
+    for split, items in splits:
+        for image, _ in items:
+            digest = file_hash(image)
+            previous = seen.get(digest)
+            if previous is not None and previous != split:
+                raise ValueError(
+                    f"Duplicate image crosses splits: {image} in {split}; also in {previous}"
+                )
+            seen[digest] = split
+            hashes[(split, image.stem)] = digest
+    return hashes
+
+
 def stage(items, destination, include_masks):
     for image, mask in items:
         images = destination / "images"
@@ -94,6 +138,10 @@ def main():
     parser.add_argument("--output", default="data/polyp")
     parser.add_argument("--target-groups-csv",
                         help="Optional CSV sample_id,group_id; group target frames by patient/video")
+    parser.add_argument("--source-groups-csv",
+                        help="Optional CSV sample_id,group_id; group source images by patient")
+    parser.add_argument("--require-target-groups", action="store_true",
+                        help="Refuse exploratory target frame-level splitting")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--source-val-fraction", type=float, default=0.2)
     parser.add_argument("--target-select-fraction", type=float, default=0.3)
@@ -107,30 +155,51 @@ def main():
     if output.exists() and any(output.iterdir()):
         parser.error(f"{output} is not empty; choose a fresh output directory")
 
+    source_pairs = pairs(args.source)
+    target_pairs = pairs(args.target)
+    validate_pairs(source_pairs)
+    validate_pairs(target_pairs)
+    source_groups = read_groups(args.source_groups_csv)
+    target_groups = read_groups(args.target_groups_csv)
+    if args.require_target_groups and target_groups is None:
+        parser.error("--require-target-groups needs --target-groups-csv")
     source_train, source_val = split_items(
-        pairs(args.source), args.source_val_fraction, args.seed
+        source_pairs, args.source_val_fraction, args.seed, source_groups
     )
-    groups = read_groups(args.target_groups_csv)
     target_test, target_select = split_items(
-        pairs(args.target), args.target_select_fraction, args.seed, groups
+        target_pairs, args.target_select_fraction, args.seed, target_groups
     )
-    stage(source_train, output / "source_train", True)
-    stage(source_val, output / "source_val", True)
-    stage(target_select, output / "target_select", False)
-    stage(target_test, output / "target_test", True)
-    with (output / "split_manifest.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["split", "sample_id", "target_group_id"])
-        for split, samples in (
-            ("source_train", source_train), ("source_val", source_val),
-            ("target_select", target_select), ("target_test", target_test),
-        ):
-            for image, _ in samples:
-                writer.writerow([split, image.stem,
-                                 groups[image.stem] if groups and split.startswith("target") else ""])
+    splits = (
+        ("source_train", source_train), ("source_val", source_val),
+        ("target_select", target_select), ("target_test", target_test),
+    )
+    hashes = image_hashes_by_split(splits)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{output.name}-staging-", dir=output.parent))
+    try:
+        for split, samples in splits:
+            stage(samples, temporary / split, include_masks=split != "target_select")
+        with (temporary / "split_manifest.csv").open(
+            "w", newline="", encoding="utf-8"
+        ) as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["split", "sample_id", "group_id", "image_sha256"])
+            for split, samples in splits:
+                groups = source_groups if split.startswith("source") else target_groups
+                for image, _ in samples:
+                    writer.writerow([
+                        split, image.stem, groups[image.stem] if groups else "",
+                        hashes[(split, image.stem)],
+                    ])
+        if output.exists():
+            output.rmdir()  # The preflight check established that it was empty.
+        temporary.rename(output)
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary)
     print(f"Source: {len(source_train)} train, {len(source_val)} val")
     print(f"Target: {len(target_select)} unlabeled selection, {len(target_test)} test")
-    if groups is None:
+    if target_groups is None:
         print("WARNING: target frames split randomly; video/patient overlap can bias test results.")
         print("Supply --target-groups-csv if original video/patient identifiers are available.")
     else:
