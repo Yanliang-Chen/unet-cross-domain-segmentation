@@ -1,0 +1,25 @@
+首次提交与首版代码说明
+========================
+
+仓库最早的 Git 提交：dabc2d8eb5f96cfbeb2611e600e4f7d5673135e9
+提交标题：Initialize U-Net starter: .gitignore
+
+严格按 Git 历史看，第一次提交只新增了 .gitignore（22 行），用于排除虚拟环境、
+Python 缓存、编辑器文件、私有数据、训练输出、模型权重及本机配置。它没有包含模型、
+训练脚本或实验结果。
+
+首版可运行代码是在随后的一组初始化提交中逐步加入的：
+1. requirements-common.txt、config.yaml 和说明文档，定义 Python 依赖与基础训练参数。
+2. models/unet.py，实现轻量二值分割 U-Net。
+3. datasets/segmentation.py，读取同名图像和掩码，调整尺寸并转为模型输入。
+4. scripts/check_device.py 和 scripts/make_demo_data.py，检查 CUDA/MPS/CPU，
+   并生成仅用于流程验证的合成图像。
+5. utils.py、train.py 和 evaluate.py，提供损失与指标计算、训练、验证、
+   检查点保存和测试集评估。
+
+这组初始化提交到 0200361 结束。该提交将 requirements-common.txt 改名为
+requirements.txt，并删除了原有的 README.md 与 README_CN.md 内容。
+
+首版代码的用途是运行二值分割基线；它尚未提供本次更新中的源域/目标域划分、
+双架构比较、无标签目标域选模和医学数据准备流程。合成数据只用于安装与运行检查，
+不能作为医学研究结果。

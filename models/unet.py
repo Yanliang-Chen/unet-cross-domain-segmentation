@@ -1,42 +1,62 @@
-"""Lightweight binary segmentation U-Net."""
+"""U-Net family for binary semantic segmentation."""
 import torch
 from torch import nn
 from torch.nn import functional as F
 
+
 class DoubleConv(nn.Sequential):
-    def __init__(self, ci, co):
+    def __init__(self, in_channels, out_channels):
         super().__init__(
-            nn.Conv2d(ci,co,3,padding=1,bias=False), nn.BatchNorm2d(co), nn.ReLU(inplace=True),
-            nn.Conv2d(co,co,3,padding=1,bias=False), nn.BatchNorm2d(co), nn.ReLU(inplace=True))
+            nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, 3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+        )
+
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=3, base_channels=16):
+    """Same encoder/decoder design at four (standard) or three (small) downsamplings."""
+
+    def __init__(self, in_channels=3, base_channels=16, depth=4):
         super().__init__()
-        b=base_channels
-        self.enc1=DoubleConv(in_channels,b)
-        self.enc2=DoubleConv(b,2*b)
-        self.enc3=DoubleConv(2*b,4*b)
-        self.enc4=DoubleConv(4*b,8*b)
-        self.bottleneck=DoubleConv(8*b,16*b)
-        self.pool=nn.MaxPool2d(2)
-        self.dec4=DoubleConv(24*b,8*b)
-        self.dec3=DoubleConv(12*b,4*b)
-        self.dec2=DoubleConv(6*b,2*b)
-        self.dec1=DoubleConv(3*b,b)
-        self.out=nn.Conv2d(b,1,1)
+        if depth not in (3, 4):
+            raise ValueError("depth must be 3 or 4")
+        if base_channels < 1:
+            raise ValueError("base_channels must be positive")
+        widths = [base_channels * (2 ** level) for level in range(depth + 1)]
+        self.encoders = nn.ModuleList(
+            DoubleConv(in_channels if i == 0 else widths[i - 1], widths[i])
+            for i in range(depth)
+        )
+        self.pool = nn.MaxPool2d(2)
+        self.bottleneck = DoubleConv(widths[-2], widths[-1])
+        self.decoders = nn.ModuleList(
+            DoubleConv(widths[i + 1] + widths[i], widths[i])
+            for i in reversed(range(depth))
+        )
+        self.out = nn.Conv2d(widths[0], 1, 1)
 
-    @staticmethod
-    def upcat(low,skip):
-        return torch.cat([skip,F.interpolate(low,size=skip.shape[2:],mode="bilinear",align_corners=False)],dim=1)
+    def forward(self, x):
+        skips = []
+        for encoder in self.encoders:
+            x = encoder(x)
+            skips.append(x)
+            x = self.pool(x)
+        x = self.bottleneck(x)
+        for decoder, skip in zip(self.decoders, reversed(skips)):
+            x = F.interpolate(x, size=skip.shape[2:], mode="bilinear", align_corners=False)
+            x = decoder(torch.cat((skip, x), dim=1))
+        return self.out(x)
 
-    def forward(self,x):
-        x1=self.enc1(x)
-        x2=self.enc2(self.pool(x1))
-        x3=self.enc3(self.pool(x2))
-        x4=self.enc4(self.pool(x3))
-        z=self.bottleneck(self.pool(x4))
-        z=self.dec4(self.upcat(z,x4))
-        z=self.dec3(self.upcat(z,x3))
-        z=self.dec2(self.upcat(z,x2))
-        z=self.dec1(self.upcat(z,x1))
-        return self.out(z)
+
+def build_model(config):
+    architecture = config.get("architecture", "unet")
+    if architecture not in ("unet", "unet_small"):
+        raise ValueError(f"Unknown architecture: {architecture}")
+    return UNet(
+        in_channels=int(config["input_channels"]),
+        base_channels=int(config["base_channels"]),
+        depth=4 if architecture == "unet" else 3,
+    )
