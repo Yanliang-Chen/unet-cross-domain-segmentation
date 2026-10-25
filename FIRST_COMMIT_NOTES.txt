@@ -69,7 +69,7 @@
 
 完成内容
 - 从本地 Kvasir-SEG 整理 1,000 对图像/掩码，划分为 800 个 source_train 和 200 个 source_val 样本。
-- 下载天池转载的 CVC-ClinicDB 数据包，解压 TIFF 图像与掩码；两类文件各 612 个。
+- 从天池页面下载完整的 CVC-ClinicDB 数据包，解压 TIFF 图像与掩码；两类文件各 612 个。
 - 使用数据包附带的 metadata.csv 中 frame_id、sequence_id 建立目标域划分；元数据列出 612 帧、29 个序列。
 - 将目标域划分为 185 个无标签 target_select 样本和 427 个 target_test 样本；分别覆盖 9 和 20 个序列，序列重叠数为 0。
 - 确认 target_select 没有 masks 目录；真实数据与整理结果留在 Git 忽略的 data/ 中。
@@ -91,5 +91,5 @@
 验证结果与使用约束
 - Windows 本地对 data/polyp_png 的审计结果为 PASS：1,612 对图像/掩码通过检查，错误数 0，目标选择集 9 个序列、测试集 20 个序列，重叠数 0；序列映射与天池文档表完全一致。
 - 本地报告保存在 Git 忽略的 data/audit_png_report.json；元数据 SHA-256 为 2f55a7b8a30bd2afe7739f453599fa7fccdfa0672890f23ad2c62e2180d5aceb，下载压缩包 SHA-256 为 3363fe6365b6c7e8d7b95165d1edc322276a794c259fddee658f0b521e9127d5。
-- 后续训练须显式使用 --data-dir data/polyp_png。天池是二次分发来源，官方原站暂不可访问；报告中需如实引用天池文档的序列映射，不能声称已核对官方原始归档。
+- 后续训练须显式使用 --data-dir data/polyp_png。数据集为 CVC-ClinicDB；记录天池下载入口、文件哈希和文档中的序列映射。当前审计未与官方网站的归档进行逐字节比对。
 - 本地 Git 合并冲突仍需单独解决；它不影响已完成的数据审计，但会阻止正常同步代码与运行训练。
