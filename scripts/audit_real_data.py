@@ -77,13 +77,15 @@ def raw_pairs(root, errors):
     return images, masks
 
 
-def read_metadata(path, errors):
+def read_metadata(path, errors, target_format):
     groups = {}
+    image_column = f"{target_format}_image_path"
+    mask_column = f"{target_format}_mask_path"
     with path.open(newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
         fields = set(reader.fieldnames or [])
-        if not {"frame_id", "sequence_id", "tif_image_path", "tif_mask_path"} <= fields:
-            errors.append("Metadata lacks frame_id, sequence_id or TIFF paths")
+        if not {"frame_id", "sequence_id", image_column, mask_column} <= fields:
+            errors.append(f"Metadata lacks frame_id, sequence_id or {target_format.upper()} paths")
             return groups
         for row in reader:
             frame = row["frame_id"].strip()
@@ -93,25 +95,27 @@ def read_metadata(path, errors):
                 continue
             groups[frame] = group
             for column, expected_folder in (
-                ("tif_image_path", "Original"),
-                ("tif_mask_path", "Ground Truth"),
+                (image_column, "Original"),
+                (mask_column, "Ground Truth"),
             ):
                 value = row[column].replace("\\", "/")
                 parts = Path(value).parts
                 if (
                     Path(value).stem != frame
-                    or Path(value).suffix.lower() not in {".tif", ".tiff"}
+                    or Path(value).suffix.lower() not in (
+                        {".tif", ".tiff"} if target_format == "tif" else {".png"}
+                    )
                     or expected_folder not in parts
                 ):
                     errors.append(f"Metadata {column} does not match frame {frame}: {value}")
     return groups
 
 
-def audit(source, target, metadata, prepared, archive=None):
+def audit(source, target, metadata, prepared, archive=None, target_format="tif"):
     errors = []
     source_images, source_masks = raw_pairs(source, errors)
     target_images, target_masks = raw_pairs(target, errors)
-    groups = read_metadata(metadata, errors)
+    groups = read_metadata(metadata, errors, target_format)
     if len(source_images) != 1000 or len(source_masks) != 1000:
         errors.append(f"Expected 1000 source image/mask pairs, got {len(source_images)}/{len(source_masks)}")
     if len(target_images) != 612 or len(target_masks) != 612:
@@ -130,9 +134,9 @@ def audit(source, target, metadata, prepared, archive=None):
         )
     if groups.keys() != target_images.keys():
         errors.append(
-            "Metadata frame IDs do not match target TIFF filenames: "
+            f"Metadata frame IDs do not match target {target_format.upper()} filenames: "
             f"metadata only={sorted(groups.keys() - target_images.keys())[:5]}, "
-            f"TIFF only={sorted(target_images.keys() - groups.keys())[:5]}"
+            f"images only={sorted(target_images.keys() - groups.keys())[:5]}"
         )
 
     validated_pairs = 0
@@ -233,6 +237,7 @@ def audit(source, target, metadata, prepared, archive=None):
         "status": "PASS" if not errors else "FAIL",
         "raw_source_pairs": len(source_images),
         "raw_target_pairs": len(target_images),
+        "target_format": target_format,
         "validated_pairs": validated_pairs,
         "metadata_rows": len(groups),
         "metadata_sequences": len(set(groups.values())),
@@ -257,9 +262,13 @@ def main():
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--prepared", type=Path, required=True)
     parser.add_argument("--archive", type=Path, help="Optional original CVC ZIP for provenance hash")
+    parser.add_argument("--target-format", choices=("tif", "png"), default="tif")
     parser.add_argument("--report", type=Path, help="Optional JSON report under ignored data/")
     args = parser.parse_args()
-    summary = audit(args.source, args.target, args.metadata, args.prepared, args.archive)
+    summary = audit(
+        args.source, args.target, args.metadata, args.prepared,
+        args.archive, args.target_format,
+    )
     output = json.dumps(summary, ensure_ascii=False, indent=2)
     print(output)
     if args.report:
