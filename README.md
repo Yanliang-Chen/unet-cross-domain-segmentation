@@ -1,6 +1,6 @@
 # Robust Cross-Domain Biomedical Image Segmentation with U-Net and Label-Free Model Selection
 
-A small, reproducible research starting point for **binary polyp segmentation**. Train a standard U-Net on labeled Kvasir-SEG images, use **unlabeled CVC-ClinicDB images** to choose one candidate checkpoint, and only then evaluate on held-out CVC-ClinicDB masks. A shallower U-Net is available as an optional architecture comparison.
+A small, reproducible research starting point for **binary polyp segmentation**. Train a standard U-Net on labeled Kvasir-SEG images, use **unlabeled CVC-ClinicDB images** to choose one candidate checkpoint, and only then evaluate on held-out CVC-ClinicDB masks.
 
 The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md). It distinguishes planned analyses from features already implemented.
 
@@ -80,8 +80,7 @@ The generated images are geometric shapes, **never medical evaluation data**. Af
 ```bash
 python -m scripts.make_demo_data
 python train.py --config config.yaml --data-dir data/demo --run-dir runs/demo_unet --epochs 2
-python train.py --config config_small.yaml --data-dir data/demo --run-dir runs/demo_small --epochs 2
-python select_model.py --runs runs/demo_unet runs/demo_small --target-images data/demo/target_select/images --output runs/demo_selection.json
+python select_model.py --runs runs/demo_unet --target-images data/demo/target_select/images --output runs/demo_selection.json
 python evaluate.py --selection runs/demo_selection.json --data-dir data/demo --split target_test
 ```
 
@@ -96,13 +95,13 @@ python evaluate.py --selection runs/selection.json --split target_test --output 
 python evaluate.py --checkpoint runs/unet/best_source.pt --split target_test --output runs/source_baseline_target.json
 ```
 
-For an optional architecture comparison, train `config_small.yaml` separately and include its run directory in `select_model.py --runs`. Select the source-only comparator from the same candidate pool by its highest `source_val_dice` in `runs/selection.csv` **before** opening target results. Record selected architecture, epoch, source Dice, target stability, target Dice/IoU and random seed. Run multiple independent seeds for a research report; the commands above use only seed 42.
+Select the source-only comparator from the same candidate pool by its highest `source_val_dice` in `runs/selection.csv` **before** opening target results. Record selected epoch, source Dice, target stability, target Dice/IoU and random seed. Run multiple independent seeds for a research report; the commands above use only seed 42.
 
 ## Files
 
 | File | Role |
 | --- | --- |
-| `models/unet.py` | Standard (4 downsamplings) and small (3) U-Net |
+| `models/unet.py` | Standard U-Net with four downsamplings |
 | `datasets/segmentation.py` | Labeled image/mask loader; image-only target loader |
 | `scripts/prepare_polyp_data.py` | Deterministic source and target staging, optional group split |
 | `train.py` | Source training, all epoch checkpoints, validation log, resume |

@@ -1,4 +1,4 @@
-"""U-Net family for binary semantic segmentation."""
+"""Standard U-Net for binary semantic segmentation."""
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -17,14 +17,13 @@ class DoubleConv(nn.Sequential):
 
 
 class UNet(nn.Module):
-    """Same encoder/decoder design at four (standard) or three (small) downsamplings."""
+    """Four-level encoder/decoder U-Net."""
 
-    def __init__(self, in_channels=3, base_channels=16, depth=4):
+    def __init__(self, in_channels=3, base_channels=16):
         super().__init__()
-        if depth not in (3, 4):
-            raise ValueError("depth must be 3 or 4")
         if base_channels < 1:
             raise ValueError("base_channels must be positive")
+        depth = 4
         widths = [base_channels * (2 ** level) for level in range(depth + 1)]
         self.encoders = nn.ModuleList(
             DoubleConv(in_channels if i == 0 else widths[i - 1], widths[i])
@@ -53,10 +52,9 @@ class UNet(nn.Module):
 
 def build_model(config):
     architecture = config.get("architecture", "unet")
-    if architecture not in ("unet", "unet_small"):
+    if architecture != "unet":
         raise ValueError(f"Unknown architecture: {architecture}")
     return UNet(
         in_channels=int(config["input_channels"]),
         base_channels=int(config["base_channels"]),
-        depth=4 if architecture == "unet" else 3,
     )

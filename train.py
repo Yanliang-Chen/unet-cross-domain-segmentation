@@ -47,13 +47,12 @@ def main():
     parser.add_argument("--device", choices=["auto", "cuda", "mps", "cpu"], default="auto")
     parser.add_argument("--data-dir")
     parser.add_argument("--run-dir")
-    parser.add_argument("--architecture", choices=["unet", "unet_small"])
     parser.add_argument("--resume", help="Resume from this run's latest checkpoint")
     parser.add_argument("--epochs", type=int)
     args = parser.parse_args()
 
     cfg = read_config(args.config)
-    for key in ("data_dir", "run_dir", "architecture", "epochs"):
+    for key in ("data_dir", "run_dir", "epochs"):
         value = getattr(args, key)
         if value is not None:
             cfg[key] = value
