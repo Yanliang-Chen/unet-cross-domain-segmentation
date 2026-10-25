@@ -1,6 +1,8 @@
 # Robust Cross-Domain Biomedical Image Segmentation with U-Net and Label-Free Model Selection
 
-A small, reproducible research starting point for **binary polyp segmentation**. Train a standard and a shallower U-Net on labeled Kvasir-SEG images, use **unlabeled CVC-ClinicDB images** to choose one candidate checkpoint, and only then evaluate on held-out CVC-ClinicDB masks.
+A small, reproducible research starting point for **binary polyp segmentation**. Train a standard U-Net on labeled Kvasir-SEG images, use **unlabeled CVC-ClinicDB images** to choose one candidate checkpoint, and only then evaluate on held-out CVC-ClinicDB masks. A shallower U-Net is available as an optional architecture comparison.
+
+The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md). It distinguishes planned analyses from features already implemented.
 
 ## Research question
 
@@ -83,17 +85,18 @@ python select_model.py --runs runs/demo_unet runs/demo_small --target-images dat
 python evaluate.py --selection runs/demo_selection.json --data-dir data/demo --split target_test
 ```
 
-### Main experiment
+### Current single-seed prototype
+
+These commands exercise the existing implementation. They do not yet run all augmentations, seeds, confidence ablations or metrics in [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md). Freeze the protocol before evaluating real target-test labels.
 
 ```bash
 python train.py --config config.yaml
-python train.py --config config_small.yaml
-python select_model.py --runs runs/unet runs/unet_small --target-images data/polyp/target_select/images --output runs/selection.json
+python select_model.py --runs runs/unet --target-images data/polyp/target_select/images --output runs/selection.json
 python evaluate.py --selection runs/selection.json --split target_test --output runs/selected_target.json
 python evaluate.py --checkpoint runs/unet/best_source.pt --split target_test --output runs/source_baseline_target.json
 ```
 
-For the strongest source-only comparator across **both** architectures, inspect the `source_val_dice` column in `runs/selection.csv`, then pass the maximum-score checkpoint to `evaluate.py --checkpoint`. Record that choice **before** opening target results. Also record selected architecture, epoch, source Dice, target stability, target Dice/IoU and random seed. Run multiple independent seeds for a research report; the example commands use only seed 42.
+For an optional architecture comparison, train `config_small.yaml` separately and include its run directory in `select_model.py --runs`. Select the source-only comparator from the same candidate pool by its highest `source_val_dice` in `runs/selection.csv` **before** opening target results. Record selected architecture, epoch, source Dice, target stability, target Dice/IoU and random seed. Run multiple independent seeds for a research report; the commands above use only seed 42.
 
 ## Files
 
