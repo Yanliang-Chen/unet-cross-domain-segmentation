@@ -18,8 +18,8 @@ EXTENSIONS = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
 SPLITS = ("source_train", "source_val", "target_select", "target_test")
 # Frame ranges transcribed from the sequence table in the Tianchi CVC-ClinicDB
 # dataset documentation (https://tianchi.aliyun.com/dataset/93690).
-# This checks the supplied metadata against that documented table; the Tianchi
-# page itself is a secondary distribution of the original CVC-ClinicDB data.
+# This checks the supplied metadata against that documented table. Archive
+# identity with another download location is outside the scope of this audit.
 DOCUMENTED_SEQUENCE_ENDS = (
     25, 50, 67, 78, 103, 126, 151, 177, 199, 205,
     227, 252, 277, 297, 317, 342, 363, 383, 408, 428,
