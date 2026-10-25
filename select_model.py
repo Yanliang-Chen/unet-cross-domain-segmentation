@@ -52,7 +52,7 @@ def select_rows(rows, tolerance):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", nargs="+", required=True,
-                        help="Run directories; consider epochs and both architectures")
+                        help="Run directories containing candidate checkpoints")
     parser.add_argument("--target-images", default="data/polyp/target_select/images")
     parser.add_argument("--output", default="runs/selection.json")
     parser.add_argument("--tolerance", type=float, default=0.03,
