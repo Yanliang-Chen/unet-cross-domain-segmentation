@@ -7,6 +7,7 @@ The proposed full experiment, including how the segmentation task relates to Xio
 For the current status and cross-machine handoff, start with [每日进度.md](每日进度.md).
 The completed six-run real-data results are in [results/2026-10-26-real-polyp.md](results/2026-10-26-real-polyp.md).
 The failure analysis, guarded selection rule, and exploratory CVC-ColonDB/ETIS evaluation are in [results/2026-10-26-followup.md](results/2026-10-26-followup.md).
+Three literature-inspired training comparisons and their paired results are in [results/2026-10-26-literature-trials.md](results/2026-10-26-literature-trials.md).
 
 ## Research question
 
@@ -152,6 +153,60 @@ The evaluator checks frozen hashes before reading external masks, then writes
 per-image output under the Git-ignored `runs/real/followup/external/` directory.
 Its summary includes counts of repeated external images and differing mask files.
 See the follow-up report for results and interpretation.
+
+### Exploratory multiscale U-Net follow-up
+
+`multiscale_protocol.yaml` records a CaraNet-inspired training comparison made after
+viewing all three earlier target datasets. It keeps the U-Net, source split, loss,
+optimizer, 30 epochs, three seeds, and A1 color/flip augmentation, but trains at
+352 pixels with one of three batch scales (0.75, 1.0, 1.25). The source-validation
+best checkpoint is compared with the same seed's original A1 source checkpoint.
+On Windows with the original data and checkpoints:
+
+```powershell
+foreach ($s in 42,43,44) {
+  .\.venv\Scripts\python.exe train.py --config multiscale_config.yaml --protocol multiscale_protocol.yaml --run-dir "runs/real/multiscale/a2_seed$s" --seed $s --augmentation a2 --device cuda
+}
+.\.venv\Scripts\python.exe -m scripts.evaluate_multiscale --device cuda
+```
+
+Both models are scored against each original-resolution mask so their different
+input sizes do not change the metric raster. This is an exploratory comparison;
+the earlier CVC-ClinicDB, CVC-ColonDB, and ETIS outcomes were already known when
+the new method was chosen.
+
+### Exploratory Tversky-loss follow-up
+
+`tversky_protocol.yaml` records a second, separate comparison after the multiscale
+result. It restores the original A1 training setup at 256 pixels and changes only
+the loss from BCE+Dice to BCE+Tversky, weighting missed foreground more strongly
+than false foreground. The three source-validation-best checkpoints are compared
+with the original A1 models using the same native-mask evaluation:
+
+```powershell
+foreach ($s in 42,43,44) {
+  .\.venv\Scripts\python.exe train.py --config tversky_config.yaml --protocol tversky_protocol.yaml --run-dir "runs/real/tversky/a1_seed$s" --seed $s --augmentation a1 --device cuda
+}
+.\.venv\Scripts\python.exe -m scripts.evaluate_tversky --device cuda
+```
+
+### Exploratory zoom-out follow-up
+
+`zoomout_protocol.yaml` records a final focused scale-distribution trial. The
+original source-training mask median occupies 11.84% of a 256-pixel image, versus
+3.62% on CVC-ColonDB and 1.98% on ETIS. Whole-image multiscale resizing leaves
+the foreground-area ratio nearly unchanged. This trial keeps the original A1
+256-pixel setup and applies paired zoom-out within the fixed canvas using factors
+0.5, 0.7, 0.9, or 1.0; image borders use replicated pixels and mask borders zero.
+The zoom ranges draw on published polyp-augmentation studies, while this exact
+implementation is an exploratory adaptation for our data.
+
+```powershell
+foreach ($s in 42,43,44) {
+  .\.venv\Scripts\python.exe train.py --config zoomout_config.yaml --protocol zoomout_protocol.yaml --run-dir "runs/real/zoomout/a3_seed$s" --seed $s --augmentation a3 --device cuda
+}
+.\.venv\Scripts\python.exe -m scripts.evaluate_zoomout --device cuda
+```
 
 ## Files
 
