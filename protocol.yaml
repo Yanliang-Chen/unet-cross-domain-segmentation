@@ -2,7 +2,7 @@
 # the Windows data machine, then commit this file before real training/evaluation.
 protocol_version: 1
 data_dir: data/polyp_png
-split_manifest_sha256: null
+split_manifest_sha256: fd0ae70afaaa538ce0c5341731c3fb3572d505a2e762cb4216de1939481dbdf6
 expected_split_counts:
   source_train: 800
   source_val: 200
