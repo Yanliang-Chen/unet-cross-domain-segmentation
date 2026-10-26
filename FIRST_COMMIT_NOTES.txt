@@ -15,3 +15,7 @@ GitHub Desktop 恢复旧 stash 时造成的 Windows 本地冲突已解决：冲�
 1. 冻结真实实验协议与 data/polyp_png 划分清单，实现显式 A0/A1 增强配置、3 个训练种子及完整运行记录。
 2. 在 RTX 5070 上先训练真实数据源域基线，再完成标准 U-Net × 2 种增强 × 3 个种子的实验；只用 target_select/images 选模，冻结规则后才评估 target_test。
 3. 补齐逐图 Dice/IoU/Precision/Recall、配对 Dice 差值、置信度与空预测诊断、事后 Oracle 和按序列统计，完成 E1–E4 报告；随后单独验证 MacBook MPS 环境。
+
+2026-10-26｜Mac 侧准备进度
+
+已新增 protocol.yaml、数据清单校验、A0/A1 × 3 种子运行入口、单运行候选池的源域/稳定性/熵选模、逐图指标与最终配对分析代码。Mac 本仓库新建独立 .venv：Python 3.11.14、PyTorch 2.11.0，11 项测试通过，A0/A1 × 3 种子的两轮合成数据训练、选模和最终分析已跑通。当前 Mac 的 MPS 不可用，所以验证使用 CPU；合成指标不代表医学结果。真实数据和训练结果仍只在 Windows，Mac 没有 data/polyp_png。下一步先在 Windows 用 python -m scripts.check_protocol --show-unlocked-hash 校验并填入 protocol.yaml 的 split_manifest_sha256，提交协议，然后先运行 a0_seed42 检查显存、时间与收敛，最后运行其余五组。整个真实目标测试集只能在六组选模结果冻结后由 scripts.final_analysis 读取。
