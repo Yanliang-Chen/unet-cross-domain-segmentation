@@ -1,0 +1,25 @@
+# Exploratory rule designed after viewing the original CVC-ClinicDB target-test results.
+# Freeze this file and the guarded selection before using the external masks.
+followup_version: 1
+status: exploratory_followup_after_original_cvc_test
+original_protocol_sha256: 73f31711f37e23a0a463ee9db37e0948b09c8b3a88bfcf8edfc5cb1dc97db43b
+original_selection_sha256:
+  a0_seed42: b8859a380bb503404475132b89d1241cd996055d4ee01a9d2629685ad1f6667e
+  a0_seed43: 5fca1c299052224385ffe84d121085390d426e828f48db9941368edb1c8ebabd
+  a0_seed44: e680e788d14f104a7c977eccff2785fac2c11372aacf678d86fa679cd19167bf
+  a1_seed42: bcb166cc486cd105d799fc05a0721220b22e09251f093c0a3b3983a489a4238b
+  a1_seed43: 3345fcfde03f061c311cac6dcd18e9a80a3b86cab75ee282dd4e2e18fc6a6ec3
+  a1_seed44: 7bba9449fbcf63b5283e20d0d3c5fbcb9a6dcc068213262e9ad26e741be69178
+source_dice_tolerance: 0.02
+empty_fraction_margin: 0.02
+guarded_selection_sha256: c312e906e415a42b25b7e525712c173915d6349dfe2e8c212fbed1ad7b6dd809
+image_size: 256
+prediction_threshold: 0.5
+external_archive_sha256: b3be6da5b25679bed228dca52ae3d668dd89f329b2505c7b8961aa20dca4a90a
+external_distribution_reference: https://github.com/DengPingFan/PraNet
+external_archive_identity_verified_against_source: false
+external_data_dir: data/TestDataset/TestDataset
+external_datasets:
+  CVC-ColonDB: 380
+  ETIS-LaribPolypDB: 196
+external_policy: prelock_mask_pair_and_nonempty_audit_only_no_model_scores
