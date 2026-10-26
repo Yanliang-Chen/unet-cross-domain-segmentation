@@ -44,13 +44,16 @@ Use Python 3.10-3.12 and create a separate local environment. On Windows PowerSh
 .\.venv\Scripts\python.exe -m scripts.check_device
 ```
 
-On macOS:
+On macOS (Python 3.11 and PyTorch 2.11.0, matching the Windows PyTorch release):
 
 ```bash
 bash scripts/setup_mac.sh
 source .venv/bin/activate
 python -m scripts.check_device
 ```
+
+The Mac wheel does not include CUDA. MPS availability depends on the local OS and hardware;
+the setup script reports it but does not require it. CPU is sufficient for workflow checks.
 
 The default `--device auto` uses CUDA, then MPS, then CPU. `amp_cuda` only activates mixed precision on CUDA. Keep datasets in `data/` on each machine; sync **code and small run summaries** via Git. Copy a checkpoint with a file transfer tool if you want to resume it on the other platform; never Git commit patient images or model weights. Floating point results can differ across devices.
 
@@ -83,21 +86,54 @@ The generated images are geometric shapes, **never medical evaluation data**. Af
 python -m scripts.make_demo_data
 python train.py --config config.yaml --data-dir data/demo --run-dir runs/demo_unet --epochs 2
 python select_model.py --runs runs/demo_unet --target-images data/demo/target_select/images --output runs/demo_selection.json
-python evaluate.py --selection runs/demo_selection.json --data-dir data/demo --split target_test
+python evaluate.py --selection runs/demo_selection.json --data-dir data/demo --split target_test --final-evaluation
 ```
 
-### Current single-seed prototype
+### Frozen real-data experiment
 
-These commands exercise the existing implementation. They do not yet run all augmentations, seeds, confidence ablations or metrics in [实验.md](实验.md). Freeze the protocol before evaluating real target-test labels. On this Windows machine, use the audited PNG staging directory `data/polyp_png`; the TIFF staging directory is not readable by the current Pillow installation.
+On the Windows data machine, use the audited PNG staging directory `data/polyp_png`.
+The TIFF staging directory is not readable by the current Pillow installation. Before
+training, validate the staged files and print the manifest hash:
 
 ```bash
-python train.py --config config.yaml
-python select_model.py --runs runs/unet --target-images data/polyp_png/target_select/images --output runs/selection.json
-python evaluate.py --selection runs/selection.json --split target_test --output runs/selected_target.json
-python evaluate.py --checkpoint runs/unet/best_source.pt --split target_test --output runs/source_baseline_target.json
+python -m scripts.check_protocol --show-unlocked-hash
 ```
 
-Select the source-only comparator from the same candidate pool by its highest `source_val_dice` in `runs/selection.csv` **before** opening target results. Record selected epoch, source Dice, target stability, target Dice/IoU and random seed. Run multiple independent seeds for a research report; the commands above use only seed 42.
+Put the printed SHA-256 in `protocol.yaml` under `split_manifest_sha256`, commit the
+protocol, then run `python -m scripts.check_protocol` again. This checks counts,
+sequence isolation, image/mask IDs, every staged image hash and the absence of
+`target_select/masks`. The hash cannot be filled on a machine without the private
+dataset. Keep the manifest and all medical data out of Git.
+
+The matrix contains A0 (horizontal/vertical flips) and A1 (the same flips plus mild
+brightness, contrast and RGB channel gains), each with seeds 42, 43 and 44. Each run
+has 30 epochs. Run one pilot cell first to check memory and timing, then the matrix:
+
+```bash
+python -m scripts.run_matrix --dry-run --device cuda
+python -m scripts.run_matrix --only a0_seed42 --device cuda
+python -m scripts.run_matrix --device cuda
+```
+
+The runner safely resumes an interrupted run from `latest.pt` and skips cells that
+already have a selection file. It saves resolved configs, environment metadata,
+per-epoch checkpoints, source metrics and one target image-only selection file per
+run. The source, stability and entropy choices are fixed within each run's candidate
+pool; the source Dice guardrail is 0.03. Mean foreground area and empty-prediction
+fraction diagnose trivial masks. No target-test labels are read in this stage.
+
+After all six training and selection files exist and the protocol is frozen, run:
+
+```bash
+python -m scripts.final_analysis --device cuda
+```
+
+This explicitly unlocks final target-test evaluation. It checks the six selection
+files and their protocol/data hashes before reading target-test labels, then reports
+per-image Dice, IoU, Precision and Recall, the paired stability-minus-source Dice
+difference, video-sequence bootstrap intervals, seed summaries and a **post-hoc**
+Oracle upper bound. Repeating the command with the same frozen inputs resumes an
+interrupted final analysis. It does not revise the selection rule based on test results.
 
 ## Files
 
@@ -109,6 +145,10 @@ Select the source-only comparator from the same candidate pool by its highest `s
 | `train.py` | Source training, all epoch checkpoints, validation log, resume |
 | `select_model.py` | Target image-only stability score + source validation gate |
 | `evaluate.py` | Separate target test evaluation |
+| `protocol.yaml` | Frozen design and split-manifest lock |
+| `scripts/check_protocol.py` | Validate the locked split and staged image hashes |
+| `scripts/run_matrix.py` | Six-run training and image-only selection runner |
+| `scripts/final_analysis.py` | Frozen final evaluation and paired report |
 | `scripts/make_demo_data.py` | Synthetic installation check |
 
 ## Limitations

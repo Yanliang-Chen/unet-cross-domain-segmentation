@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
+python_exe="${1:-python3.11}"
 if [ ! -x .venv/bin/python ]; then
-    python3 -m venv .venv
+    "$python_exe" -m venv .venv
 fi
-.venv/bin/python -c 'import sys; assert (3, 10) <= sys.version_info[:2] <= (3, 12), "Python 3.10-3.12 required"'
+.venv/bin/python -c 'import sys; assert sys.version_info[:2] == (3, 11), "Python 3.11 required to match Windows"'
 .venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install torch
+.venv/bin/python -m pip install 'torch==2.11.0'
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m scripts.check_device
-.venv/bin/python -c "import torch; assert torch.backends.mps.is_available(), 'MPS unavailable'; print('MPS ready')"
+.venv/bin/python -c 'import torch; assert torch.__version__.split("+")[0] == "2.11.0"'

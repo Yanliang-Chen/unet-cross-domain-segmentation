@@ -1,0 +1,38 @@
+# Fixed before inspecting real target_test labels. Fill the manifest SHA-256 on
+# the Windows data machine, then commit this file before real training/evaluation.
+protocol_version: 1
+data_dir: data/polyp_png
+split_manifest_sha256: null
+expected_split_counts:
+  source_train: 800
+  source_val: 200
+  target_select: 185
+  target_test: 427
+expected_target_groups:
+  target_select: 9
+  target_test: 20
+seeds: [42, 43, 44]
+augmentations: [a0, a1]
+augmentation_parameters:
+  a0:
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.5
+  a1:
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.5
+    photometric_probability: 0.5
+    brightness_factor: [0.9, 1.1]
+    contrast_factor: [0.9, 1.1]
+    rgb_channel_gain: [0.95, 1.05]
+random_streams: model_seed_then_independent_shuffle_seed_plus_1000_geometry_plus_2000_photometric_plus_3000
+epochs: 30
+source_dice_tolerance: 0.03
+prediction_threshold: 0.5
+primary_effect: mean_per_image_dice_stability_minus_source
+target_selection: mean_absolute_probability_change_under_horizontal_flip_and_brightness
+target_selection_brightness_transform: image_times_0.9_plus_0.05_clamped_to_0_1
+confidence_ablation: lowest_mean_binary_entropy_within_source_gate
+tie_break: [higher_source_val_dice, lexicographic_checkpoint_path]
+bootstrap_repeats: 2000
+bootstrap_seed: 20261026
+target_test_policy: evaluate_only_after_all_runs_and_selection_files_are_frozen

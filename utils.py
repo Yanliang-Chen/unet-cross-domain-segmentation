@@ -45,6 +45,27 @@ def dice_iou_sum(logits,masks):
     i=(inter+1e-6)/(a+b-inter+1e-6)
     return d.sum().item(),i.sum().item(),masks.shape[0]
 
+@torch.no_grad()
+def per_image_metrics(logits, masks, threshold=0.5):
+    """Binary metrics per image; an empty prediction against a positive GT scores 0."""
+    pred = torch.sigmoid(logits) > threshold
+    gt = masks > 0.5
+    dims = (1, 2, 3)
+    tp = (pred & gt).sum(dim=dims).float()
+    predicted = pred.sum(dim=dims).float()
+    actual = gt.sum(dim=dims).float()
+    union = predicted + actual - tp
+    dice = torch.where(predicted + actual == 0, 1.0,
+                       2 * tp / (predicted + actual).clamp_min(1))
+    iou = torch.where(union == 0, 1.0, tp / union.clamp_min(1))
+    precision = torch.where(predicted == 0, (actual == 0).float(),
+                            tp / predicted.clamp_min(1))
+    recall = torch.where(actual == 0, 1.0, tp / actual.clamp_min(1))
+    foreground_fraction = predicted / pred[0].numel()
+    values = zip(dice, iou, precision, recall, foreground_fraction)
+    return [dict(zip(("dice", "iou", "precision", "recall", "foreground_fraction"),
+                     (float(x) for x in row))) for row in values]
+
 def move_optimizer_states(optimizer,device):
     for state in optimizer.state.values():
         for key,value in state.items():
