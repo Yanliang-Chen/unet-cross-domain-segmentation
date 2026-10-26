@@ -30,11 +30,12 @@ def audit_external(protocol):
     for split in ("source_train", "source_val", "target_select", "target_test"):
         known.update(sha256(path) for path in index_images(original / split / "images"))
     datasets = {}
+    duplicate_audit = {}
     for name, expected in protocol["external_datasets"].items():
         dataset = SegmentationDataset(root, name, protocol["image_size"], 3)
         if len(dataset) != expected:
             raise ValueError(f"{name} has {len(dataset)} pairs, expected {expected}")
-        hashes = set()
+        masks_by_image = {}
         for image, mask in dataset.pairs:
             with Image.open(image) as im, Image.open(mask) as gt:
                 im.load()
@@ -42,12 +43,19 @@ def audit_external(protocol):
                 if im.size != gt.size:
                     raise ValueError(f"Image/mask dimensions differ: {image}")
             digest = sha256(image)
-            if digest in known or digest in hashes:
-                raise ValueError(f"Exact duplicate image in external evaluation: {image}")
-            hashes.add(digest)
-        known.update(hashes)
+            if digest in known:
+                raise ValueError(f"Image overlaps another evaluation domain or training split: {image}")
+            masks_by_image.setdefault(digest, []).append(sha256(mask))
+        known.update(masks_by_image)
+        repeated = [masks for masks in masks_by_image.values() if len(masks) > 1]
+        duplicate_audit[name] = {
+            "unique_images": len(masks_by_image),
+            "duplicate_image_groups": len(repeated),
+            "extra_image_copies": sum(len(masks) - 1 for masks in repeated),
+            "groups_with_different_mask_bytes": sum(len(set(masks)) > 1 for masks in repeated),
+        }
         datasets[name] = dataset
-    return datasets
+    return datasets, duplicate_audit
 
 
 def preload(dataset, batch_size):
@@ -108,7 +116,8 @@ def main():
         for method in run["methods"].values():
             if sha256(method["checkpoint"]) != method["checkpoint_sha256"]:
                 raise ValueError(f"Changed checkpoint: {method['checkpoint']}")
-    datasets = audit_external(protocol)
+    datasets, duplicate_audit = audit_external(protocol)
+    print("External duplicate audit:", json.dumps(duplicate_audit), flush=True)
     output = Path(args.output_dir)
     lock = {"protocol_sha256": sha256(args.protocol),
             "selection_sha256": sha256(args.selection),
@@ -165,7 +174,8 @@ def main():
                   "original", f"{old['mean_dice']:.4f}",
                   "guarded", f"{guarded['mean_dice']:.4f}", flush=True)
         summary.append({"dataset": domain, "runs": domain_rows})
-    (output / "summary.json").write_text(json.dumps({"datasets": summary}, indent=2) + "\n",
+    (output / "summary.json").write_text(json.dumps({"datasets": summary,
+                                                      "duplicate_audit": duplicate_audit}, indent=2) + "\n",
                                          encoding="utf-8")
     print("Saved external evaluation to", output)
 
