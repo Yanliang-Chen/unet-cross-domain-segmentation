@@ -4,6 +4,8 @@ A small, reproducible research starting point for **binary polyp segmentation**.
 
 The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [实验.md](实验.md). It distinguishes planned analyses from features already implemented.
 
+For the current status and cross-machine handoff, start with [提交进度记录.md](提交进度记录.md).
+
 ## Research question
 
 Does selecting a U-Net checkpoint from unlabeled target images improve held-out target Dice compared with choosing the checkpoint with the best **source validation Dice**? Here the unsupervised score measures prediction stability under horizontal flip and mild brightness change. Source validation Dice restricts the candidate pool to within 0.03 of the best source candidate. This is a deliberately simple baseline, **not** an implementation of Xiong et al.'s two-level ensemble/reference method and **not** a validated estimator of segmentation quality. Stable empty predictions remain a risk. Run the source-only baseline and inspect the predictions before claiming an improvement.
