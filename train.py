@@ -8,6 +8,7 @@ from importlib import metadata as package_metadata
 from pathlib import Path
 import torch
 import yaml
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -15,7 +16,7 @@ from datasets.segmentation import SegmentationDataset
 from models.unet import build_model
 from scripts.check_protocol import check_protocol, sha256
 from utils import (
-    atomic_torch_save, bce_dice_loss, choose_device, dice_iou_sum,
+    atomic_torch_save, bce_dice_loss, bce_tversky_loss, choose_device, dice_iou_sum,
     move_optimizer_states, read_config, seed_everything,
 )
 
@@ -28,15 +29,41 @@ AUGMENTATION_PARAMETERS = {
            "brightness_factor": [0.9, 1.1],
            "contrast_factor": [0.9, 1.1],
            "rgb_channel_gain": [0.95, 1.05]},
+    "a2": {"horizontal_flip_probability": 0.5,
+           "vertical_flip_probability": 0.5,
+           "photometric_probability": 0.5,
+           "brightness_factor": [0.9, 1.1],
+           "contrast_factor": [0.9, 1.1],
+           "rgb_channel_gain": [0.95, 1.05],
+           "training_scales": [0.75, 1.0, 1.25]},
+    "a3": {"horizontal_flip_probability": 0.5,
+           "vertical_flip_probability": 0.5,
+           "photometric_probability": 0.5,
+           "brightness_factor": [0.9, 1.1],
+           "contrast_factor": [0.9, 1.1],
+           "rgb_channel_gain": [0.95, 1.05],
+           "zoom_out_scales": [0.5, 0.7, 0.9, 1.0],
+           "image_padding": "replicate",
+           "mask_padding": 0},
 }
 RANDOM_STREAM_POLICY = (
     "model_seed_then_independent_shuffle_seed_plus_1000_geometry_plus_2000_"
     "photometric_plus_3000"
 )
+MULTISCALE_RANDOM_STREAM_POLICY = RANDOM_STREAM_POLICY + "_scale_plus_4000"
+
+
+def configured_loss(logits, masks, cfg):
+    if cfg.get("loss", "bce_dice") == "bce_dice":
+        return bce_dice_loss(logits, masks)
+    if cfg["loss"] == "bce_tversky":
+        return bce_tversky_loss(logits, masks, float(cfg["tversky_fp_weight"]),
+                                float(cfg["tversky_fn_weight"]))
+    raise ValueError(f"Unknown loss: {cfg['loss']}")
 
 
 @torch.inference_mode()
-def validate(model, loader, device):
+def validate(model, loader, device, cfg):
     model.eval()
     loss_sum = dice_sum = iou_sum = 0.0
     n = 0
@@ -44,7 +71,7 @@ def validate(model, loader, device):
         images, masks = images.to(device), masks.to(device)
         logits = model(images)
         batch = len(images)
-        loss_sum += bce_dice_loss(logits, masks).item() * batch
+        loss_sum += configured_loss(logits, masks, cfg).item() * batch
         d, i, _ = dice_iou_sum(logits, masks)
         dice_sum += d
         iou_sum += i
@@ -53,7 +80,7 @@ def validate(model, loader, device):
 
 
 def augment(images, masks, mode, geometry_rng=None, photometric_rng=None):
-    """A0: paired flips. A1: the same flips plus mild image-only color changes."""
+    """Paired flips and optional image-only color changes."""
     if mode not in AUGMENTATION_PARAMETERS:
         raise ValueError(f"Unknown augmentation: {mode}")
     parameters = AUGMENTATION_PARAMETERS[mode]
@@ -61,7 +88,7 @@ def augment(images, masks, mode, geometry_rng=None, photometric_rng=None):
         images, masks = images.flip(-1), masks.flip(-1)
     if torch.rand((), generator=geometry_rng).item() < parameters["vertical_flip_probability"]:
         images, masks = images.flip(-2), masks.flip(-2)
-    if mode == "a1" and torch.rand((), generator=photometric_rng).item() < parameters["photometric_probability"]:
+    if mode in ("a1", "a2", "a3") and torch.rand((), generator=photometric_rng).item() < parameters["photometric_probability"]:
         brightness = parameters["brightness_factor"][0] + (
             parameters["brightness_factor"][1] - parameters["brightness_factor"][0]
         ) * torch.rand((), generator=photometric_rng).item()
@@ -80,6 +107,38 @@ def augment(images, masks, mode, geometry_rng=None, photometric_rng=None):
     return images, masks
 
 
+def multiscale_batch(images, masks, mode, scale_rng):
+    """Resize one paired training batch; validation always uses the base size."""
+    if mode != "a2":
+        return images, masks
+    scales = AUGMENTATION_PARAMETERS[mode]["training_scales"]
+    index = int(torch.randint(len(scales), (), generator=scale_rng).item())
+    size = round(images.shape[-1] * scales[index])
+    if size == images.shape[-1]:
+        return images, masks
+    return (F.interpolate(images, size=(size, size), mode="bilinear", align_corners=False),
+            F.interpolate(masks, size=(size, size), mode="nearest"))
+
+
+def zoom_out_batch(images, masks, mode, scale_rng):
+    """Shrink paired images within the fixed canvas to expose smaller polyps."""
+    if mode != "a3":
+        return images, masks
+    scales = AUGMENTATION_PARAMETERS[mode]["zoom_out_scales"]
+    index = int(torch.randint(len(scales), (), generator=scale_rng).item())
+    height, width = images.shape[-2:]
+    new_height, new_width = round(height * scales[index]), round(width * scales[index])
+    if (new_height, new_width) == (height, width):
+        return images, masks
+    images = F.interpolate(images, size=(new_height, new_width), mode="bilinear",
+                           align_corners=False)
+    masks = F.interpolate(masks, size=(new_height, new_width), mode="nearest")
+    left = int(torch.randint(width - new_width + 1, (), generator=scale_rng).item())
+    top = int(torch.randint(height - new_height + 1, (), generator=scale_rng).item())
+    pad = (left, width - new_width - left, top, height - new_height - top)
+    return F.pad(images, pad, mode="replicate"), F.pad(masks, pad, value=0)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config.yaml")
@@ -89,7 +148,7 @@ def main():
     parser.add_argument("--resume", help="Resume from this run's latest checkpoint")
     parser.add_argument("--epochs", type=int)
     parser.add_argument("--seed", type=int)
-    parser.add_argument("--augmentation", choices=["a0", "a1"])
+    parser.add_argument("--augmentation", choices=["a0", "a1", "a2", "a3"])
     parser.add_argument("--protocol", default="protocol.yaml")
     args = parser.parse_args()
 
@@ -99,10 +158,18 @@ def main():
         if value is not None:
             cfg[key] = value
     cfg["augmentation"] = cfg.get("augmentation", "a0")
-    if cfg["augmentation"] not in ("a0", "a1"):
-        raise ValueError("augmentation must be a0 or a1")
+    if cfg["augmentation"] not in AUGMENTATION_PARAMETERS:
+        raise ValueError("Unknown augmentation")
     if int(cfg["epochs"]) < 1:
         raise ValueError("epochs must be positive")
+    loss_name = cfg.get("loss", "bce_dice")
+    if loss_name not in ("bce_dice", "bce_tversky"):
+        raise ValueError(f"Unknown loss: {loss_name}")
+    if loss_name == "bce_tversky":
+        fp_weight = float(cfg["tversky_fp_weight"])
+        fn_weight = float(cfg["tversky_fn_weight"])
+        if not 0 <= fp_weight <= 1 or not 0 <= fn_weight <= 1 or abs(fp_weight + fn_weight - 1) > 1e-9:
+            raise ValueError("Tversky false-positive and false-negative weights must sum to one")
     demo = Path(cfg["data_dir"]).resolve() == Path("data/demo").resolve()
     protocol_info = None
     if not demo:
@@ -114,14 +181,29 @@ def main():
             raise ValueError("Training seed differs from frozen protocol")
         if cfg["augmentation"] not in protocol["augmentations"]:
             raise ValueError("Augmentation differs from frozen protocol")
-        if protocol["augmentation_parameters"] != AUGMENTATION_PARAMETERS:
+        expected_augmentations = {
+            name: AUGMENTATION_PARAMETERS[name] for name in protocol["augmentations"]
+        }
+        if protocol["augmentation_parameters"] != expected_augmentations:
             raise ValueError("Augmentation parameters differ from the frozen protocol")
-        if protocol["random_streams"] != RANDOM_STREAM_POLICY:
+        random_stream_policy = (MULTISCALE_RANDOM_STREAM_POLICY if cfg["augmentation"] in ("a2", "a3")
+                                else RANDOM_STREAM_POLICY)
+        if protocol["random_streams"] != random_stream_policy:
             raise ValueError("Random-stream policy differs from the frozen protocol")
+        if "training_image_size" in protocol and int(cfg["image_size"]) != int(protocol["training_image_size"]):
+            raise ValueError("Training image size differs from the frozen protocol")
+        if loss_name != protocol.get("training_loss", "bce_dice"):
+            raise ValueError("Training loss differs from the frozen protocol")
+        if loss_name == "bce_tversky" and (
+            fp_weight != float(protocol["tversky_fp_weight"])
+            or fn_weight != float(protocol["tversky_fn_weight"])
+        ):
+            raise ValueError("Tversky weights differ from the frozen protocol")
     seed_everything(int(cfg["seed"]))
     shuffle_rng = torch.Generator().manual_seed(int(cfg["seed"]) + 1000)
     geometry_rng = torch.Generator().manual_seed(int(cfg["seed"]) + 2000)
     photometric_rng = torch.Generator().manual_seed(int(cfg["seed"]) + 3000)
+    scale_rng = torch.Generator().manual_seed(int(cfg["seed"]) + 4000)
     device = choose_device(args.device)
     run_dir = Path(cfg["run_dir"])
     if not args.resume and run_dir.exists() and any(run_dir.iterdir()):
@@ -153,7 +235,7 @@ def main():
             "protocol_sha256": sha256(args.protocol) if not demo else None,
             "split_manifest_sha256": protocol_info["manifest_sha256"] if protocol_info else None,
             "augmentation_parameters": AUGMENTATION_PARAMETERS[cfg["augmentation"]],
-            "random_streams": RANDOM_STREAM_POLICY,
+            "random_streams": random_stream_policy if not demo else RANDOM_STREAM_POLICY,
         }
         metadata_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     print(f"PyTorch={torch.__version__}; device={device}; source={cfg['data_dir']}")
@@ -199,7 +281,8 @@ def main():
             torch.cuda.set_rng_state_all(saved["cuda_rng_states"])
         for generator, key in ((shuffle_rng, "shuffle_rng_state"),
                                (geometry_rng, "geometry_rng_state"),
-                               (photometric_rng, "photometric_rng_state")):
+                               (photometric_rng, "photometric_rng_state"),
+                               (scale_rng, "scale_rng_state")):
             if saved.get(key) is not None:
                 generator.set_state(saved[key])
 
@@ -218,15 +301,17 @@ def main():
                 images, masks = augment(images, masks, cfg["augmentation"],
                                         geometry_rng, photometric_rng)
                 images, masks = images.to(device), masks.to(device)
+                images, masks = multiscale_batch(images, masks, cfg["augmentation"], scale_rng)
+                images, masks = zoom_out_batch(images, masks, cfg["augmentation"], scale_rng)
                 optimizer.zero_grad(set_to_none=True)
                 with torch.autocast(device_type="cuda", enabled=use_amp):
-                    loss = bce_dice_loss(model(images), masks)
+                    loss = configured_loss(model(images), masks, cfg)
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
                 loss_sum += loss.item() * len(images)
                 count += len(images)
-            val_loss, val_dice, val_iou = validate(model, val_loader, device)
+            val_loss, val_dice, val_iou = validate(model, val_loader, device, cfg)
             improved = val_dice > best
             best = max(best, val_dice)
             state = {
@@ -240,6 +325,7 @@ def main():
                 "shuffle_rng_state": shuffle_rng.get_state(),
                 "geometry_rng_state": geometry_rng.get_state(),
                 "photometric_rng_state": photometric_rng.get_state(),
+                "scale_rng_state": scale_rng.get_state(),
             }
             atomic_torch_save(state, run_dir / "checkpoints" / f"epoch_{epoch + 1:03d}.pt")
             atomic_torch_save(state, run_dir / "latest.pt")

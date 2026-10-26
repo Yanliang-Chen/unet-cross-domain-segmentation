@@ -1,0 +1,40 @@
+# Exploratory follow-up designed after viewing CVC-ClinicDB, CVC-ColonDB, and ETIS results.
+# Uses only existing Kvasir-SEG source labels for training and source validation for selection.
+protocol_version: 2
+status: exploratory_after_three_target_datasets
+literature_reference: https://pmc.ncbi.nlm.nih.gov/articles/PMC9938296/
+method: unet_a1_color_flips_plus_caranet_inspired_multiscale_training
+original_protocol_sha256: 73f31711f37e23a0a463ee9db37e0948b09c8b3a88bfcf8edfc5cb1dc97db43b
+original_source_selection_sha256: c312e906e415a42b25b7e525712c173915d6349dfe2e8c212fbed1ad7b6dd809
+data_dir: data/polyp_png
+split_manifest_sha256: fd0ae70afaaa538ce0c5341731c3fb3572d505a2e762cb4216de1939481dbdf6
+expected_split_counts:
+  source_train: 800
+  source_val: 200
+  target_select: 185
+  target_test: 427
+expected_target_groups:
+  target_select: 9
+  target_test: 20
+seeds: [42, 43, 44]
+augmentations: [a2]
+augmentation_parameters:
+  a2:
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.5
+    photometric_probability: 0.5
+    brightness_factor: [0.9, 1.1]
+    contrast_factor: [0.9, 1.1]
+    rgb_channel_gain: [0.95, 1.05]
+    training_scales: [0.75, 1.0, 1.25]
+random_streams: model_seed_then_independent_shuffle_seed_plus_1000_geometry_plus_2000_photometric_plus_3000_scale_plus_4000
+epochs: 30
+training_image_size: 352
+checkpoint_selection: highest_source_val_dice
+baseline: original_a1_source_selected_checkpoint_same_seed
+primary_comparison: mean_per_image_native_mask_dice_new_minus_baseline
+secondary_measures: [small_polyp_dice, recall, precision, empty_prediction_fraction]
+small_polyp_area_cutoff: 0.02
+prediction_threshold: 0.5
+evaluation_domains: [CVC-ClinicDB, CVC-ColonDB, ETIS-LaribPolypDB]
+evaluation_status: exploratory_not_independent_confirmation

@@ -33,6 +33,17 @@ def bce_dice_loss(logits,target):
     denom=p.sum(dim=dims)+target.sum(dim=dims)
     return bce+1-((2*inter+1)/(denom+1)).mean()
 
+def bce_tversky_loss(logits, target, fp_weight=0.3, fn_weight=0.7):
+    """BCE plus a recall-weighted Tversky term for small foreground objects."""
+    bce = F.binary_cross_entropy_with_logits(logits, target)
+    probability = torch.sigmoid(logits)
+    dims = (1, 2, 3)
+    tp = (probability * target).sum(dim=dims)
+    fp = (probability * (1 - target)).sum(dim=dims)
+    fn = ((1 - probability) * target).sum(dim=dims)
+    score = (tp + 1) / (tp + fp_weight * fp + fn_weight * fn + 1)
+    return bce + 1 - score.mean()
+
 @torch.no_grad()
 def dice_iou_sum(logits,masks):
     pred=torch.sigmoid(logits)>0.5

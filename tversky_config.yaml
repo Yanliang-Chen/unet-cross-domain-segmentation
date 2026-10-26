@@ -1,0 +1,17 @@
+seed: 42
+data_dir: data/polyp_png
+run_dir: runs/real/tversky/a1_seed42
+architecture: unet
+image_size: 256
+input_channels: 3
+base_channels: 16
+batch_size: 8
+num_workers: 0
+learning_rate: 0.0003
+weight_decay: 0.0001
+epochs: 30
+amp_cuda: true
+augmentation: a1
+loss: bce_tversky
+tversky_fp_weight: 0.3
+tversky_fn_weight: 0.7
