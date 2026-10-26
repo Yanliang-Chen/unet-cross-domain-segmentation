@@ -6,6 +6,7 @@ The proposed full experiment, including how the segmentation task relates to Xio
 
 For the current status and cross-machine handoff, start with [每日进度.md](每日进度.md).
 The completed six-run real-data results are in [results/2026-10-26-real-polyp.md](results/2026-10-26-real-polyp.md).
+The failure analysis, guarded selection rule, and exploratory CVC-ColonDB/ETIS evaluation are in [results/2026-10-26-followup.md](results/2026-10-26-followup.md).
 
 ## Research question
 
@@ -132,6 +133,25 @@ per-image Dice, IoU, Precision and Recall, the paired stability-minus-source Dic
 difference, video-sequence bootstrap intervals, seed summaries and a **post-hoc**
 Oracle upper bound. Repeating the command with the same frozen inputs resumes an
 interrupted final analysis. It does not revise the selection rule based on test results.
+
+### Exploratory guarded-selection follow-up
+
+The follow-up rule was designed after reviewing the original CVC-ClinicDB test, so
+its original-test result is exploratory. `followup_protocol.yaml` locks a stricter
+source Dice tolerance, an empty-prediction limit, the six selections, and the local
+external archive. On the Windows data machine, with the original checkpoints and
+the extracted PraNet-style `data/TestDataset/TestDataset/` directory present:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.select_guarded
+.\.venv\Scripts\python.exe -m scripts.evaluate_external_followup --device cuda
+```
+
+The selector reads only source validation and unlabeled target-selection data.
+The evaluator checks frozen hashes before reading external masks, then writes
+per-image output under the Git-ignored `runs/real/followup/external/` directory.
+Its summary includes counts of repeated external images and differing mask files.
+See the follow-up report for results and interpretation.
 
 ## Files
 
