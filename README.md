@@ -5,6 +5,7 @@ A small, reproducible research starting point for **binary polyp segmentation**.
 The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [实验.md](实验.md). It distinguishes planned analyses from features already implemented.
 
 For the current status and cross-machine handoff, start with [提交进度记录.md](提交进度记录.md).
+The completed six-run real-data results are in [results/2026-10-26-real-polyp.md](results/2026-10-26-real-polyp.md).
 
 ## Research question
 
@@ -128,6 +129,7 @@ After all six training and selection files exist and the protocol is frozen, run
 
 ```bash
 python -m scripts.final_analysis --device cuda
+python -m scripts.posthoc_diagnostics
 ```
 
 This explicitly unlocks final target-test evaluation. It checks the six selection
@@ -151,6 +153,7 @@ interrupted final analysis. It does not revise the selection rule based on test 
 | `scripts/check_protocol.py` | Validate the locked split and staged image hashes |
 | `scripts/run_matrix.py` | Six-run training and image-only selection runner |
 | `scripts/final_analysis.py` | Frozen final evaluation and paired report |
+| `scripts/posthoc_diagnostics.py` | Post-hoc candidate rank and failure diagnostics |
 | `scripts/make_demo_data.py` | Synthetic installation check |
 
 ## Limitations
