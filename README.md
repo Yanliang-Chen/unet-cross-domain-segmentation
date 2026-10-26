@@ -4,7 +4,7 @@ A small, reproducible research starting point for **binary polyp segmentation**.
 
 The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [实验.md](实验.md). It distinguishes planned analyses from features already implemented.
 
-For the current status and cross-machine handoff, start with [提交进度记录.md](提交进度记录.md).
+For the current status and cross-machine handoff, start with [每日进度.md](每日进度.md).
 The completed six-run real-data results are in [results/2026-10-26-real-polyp.md](results/2026-10-26-real-polyp.md).
 
 ## Research question
@@ -37,9 +37,10 @@ data/raw/cvc-clinicdb/metadata.csv  # optional: frame_id,sequence_id
 
 CVC-ClinicDB can also use `images/` and `masks/` folder names. Its metadata CSV may instead have `sample_id,group_id`. The script does **not** download or redistribute medical images.
 
-### Environment (Windows NVIDIA or Apple Silicon Mac)
+### Environment and machine roles
 
-Use Python 3.10-3.12 and create a separate local environment. On Windows PowerShell:
+Run training and evaluation on the Windows NVIDIA machine. Use Python 3.10-3.12
+and a separate local environment. On Windows PowerShell:
 
 ```powershell
 ./scripts/setup_windows.ps1
@@ -47,18 +48,11 @@ Use Python 3.10-3.12 and create a separate local environment. On Windows PowerSh
 .\.venv\Scripts\python.exe -m scripts.check_device
 ```
 
-On macOS (Python 3.11 and PyTorch 2.11.0, matching the Windows PyTorch release):
-
-```bash
-bash scripts/setup_mac.sh
-source .venv/bin/activate
-python -m scripts.check_device
-```
-
-The Mac wheel does not include CUDA. MPS availability depends on the local OS and hardware;
-the setup script reports it but does not require it. CPU is sufficient for workflow checks.
-
-The default `--device auto` uses CUDA, then MPS, then CPU. `amp_cuda` only activates mixed precision on CUDA. Keep datasets in `data/` on each machine; sync **code and small run summaries** via Git. Copy a checkpoint with a file transfer tool if you want to resume it on the other platform; never Git commit patient images or model weights. Floating point results can differ across devices.
+The Mac is for code and document editing plus Git synchronization only. Do not run
+model training or evaluation there. Keep datasets, checkpoints, and detailed run
+outputs on Windows; sync code and small non-private summaries through Git. Never
+commit medical images or model weights. The default `--device auto` uses CUDA when
+available, and `amp_cuda` only activates mixed precision on CUDA.
 
 ### Prepare real datasets
 
