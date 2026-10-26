@@ -5,6 +5,7 @@ import hashlib
 import random
 import shutil
 import tempfile
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -193,7 +194,16 @@ def main():
                     ])
         if output.exists():
             output.rmdir()  # The preflight check established that it was empty.
-        temporary.rename(output)
+        # Windows can briefly keep a newly copied image open for scanning.
+        # Retry the same atomic directory rename without touching staged data.
+        for attempt in range(5):
+            try:
+                temporary.rename(output)
+                break
+            except PermissionError:
+                if attempt == 4 or output.exists():
+                    raise
+                time.sleep(0.2)
     finally:
         if temporary.exists():
             shutil.rmtree(temporary)
