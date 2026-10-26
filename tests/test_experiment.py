@@ -11,12 +11,18 @@ from PIL import Image
 
 from scripts.check_protocol import check_protocol, sha256
 from scripts.final_analysis import cluster_interval, paired_dice
+from scripts.posthoc_diagnostics import spearman
 from select_model import require_target_selection_images, select_rows
 from train import augment
 from utils import per_image_metrics
 
 
 class ExperimentTests(unittest.TestCase):
+    def test_posthoc_rank_correlation_handles_ties_and_constant_scores(self):
+        self.assertAlmostEqual(spearman([1, 2, 2, 4], [4, 2, 2, 1]), -1.0)
+        self.assertEqual(spearman([1, 2, 3], [1, 2, 3]), 1.0)
+        self.assertIsNone(spearman([1, 1, 1], [1, 2, 3]))
+
     def test_protocol_lock_detects_changed_staged_image(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as temporary:
             root = Path(temporary)
