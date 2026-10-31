@@ -1,0 +1,2306 @@
+{
+  "as_of": "2026-10-31",
+  "note": "Frozen result summaries; cleanup does not change historical outcomes.",
+  "studies": {
+    "far_primary": {
+      "source_file": "runs/real/far_confirmatory/decision.json",
+      "source_sha256": "31b8200091ef1450ddbe72fdb42595a87de8b07a658fdf4b523bfaf97599a50e",
+      "result": {
+        "primary_method": "gated_cross",
+        "primary_comparator": "gated_control",
+        "positive_patients": 186,
+        "normal_only_patients": 258,
+        "augmentations": {
+          "a0": {
+            "polyp": {
+              "n_patients": 186,
+              "difference": -0.027573844192545733,
+              "ci95": [
+                -0.03712963766509074,
+                -0.01808117372779876
+              ]
+            },
+            "healthy": {
+              "n_patients": 258,
+              "difference": 0.029483264230827744,
+              "ci95": [
+                0.024358295090801986,
+                0.03461639140345753
+              ]
+            },
+            "passed": false
+          },
+          "a1": {
+            "polyp": {
+              "n_patients": 186,
+              "difference": -0.02931673394107649,
+              "ci95": [
+                -0.040479470356448125,
+                -0.018029234141103998
+              ]
+            },
+            "healthy": {
+              "n_patients": 258,
+              "difference": 0.008457740571971862,
+              "ci95": [
+                0.003952693481085101,
+                0.01291302968662663
+              ]
+            },
+            "passed": false
+          }
+        },
+        "method_means": {
+          "a0/source": 0.47082988321846203,
+          "a0/control_ensemble": 0.48602739900155945,
+          "a0/cross_ensemble": 0.46427725224727506,
+          "a0/gated_control": 0.4838446579408501,
+          "a0/gated_cross": 0.4562708137483044,
+          "a1/source": 0.5087560164642368,
+          "a1/control_ensemble": 0.5194953133915119,
+          "a1/cross_ensemble": 0.49486798020218625,
+          "a1/gated_control": 0.5184525377740572,
+          "a1/gated_cross": 0.4891358038329806
+        },
+        "success": false
+      }
+    },
+    "far_secondary": {
+      "source_file": "runs/real/far_confirmatory/secondary.json",
+      "source_sha256": "111ed4ad5c682ce58a3dcbb2b9cb6984489162f8178a12d3f4df73a5a29fd353",
+      "result": {
+        "family_size": 12,
+        "status": "secondary_analysis_of_prelisted_methods_not_replacement_primary_test",
+        "results": [
+          {
+            "augmentation": "a0",
+            "method": "control_ensemble",
+            "baseline": "source",
+            "polyp": {
+              "difference": 0.015197515783097469,
+              "n_groups": 186,
+              "ci95": [
+                0.008669560185983673,
+                0.02170072911620896
+              ],
+              "bonferroni_familywise95_interval": [
+                0.005607171218885647,
+                0.024755174051203654
+              ]
+            },
+            "healthy": {
+              "difference": -0.016972874917215382,
+              "n_groups": 258,
+              "ci95": [
+                -0.02382526406976038,
+                -0.0101715646125549
+              ],
+              "bonferroni_familywise95_interval": [
+                -0.026972729605974282,
+                -0.007094338554313461
+              ]
+            },
+            "per_seed_polyp_difference": {
+              "42": 0.012958539435143341,
+              "43": 0.00801979216745304,
+              "44": 0.024614215746696026
+            }
+          },
+          {
+            "augmentation": "a0",
+            "method": "cross_ensemble",
+            "baseline": "source",
+            "polyp": {
+              "difference": -0.00655263097118698,
+              "n_groups": 186,
+              "ci95": [
+                -0.01740194212097448,
+                0.004374143920411318
+              ],
+              "bonferroni_familywise95_interval": [
+                -0.022371497623891835,
+                0.009847903410660845
+              ]
+            },
+            "healthy": {
+              "difference": 0.09859434564841706,
+              "n_groups": 258,
+              "ci95": [
+                0.0896009944076978,
+                0.10786262391190925
+              ],
+              "bonferroni_familywise95_interval": [
+                0.08547326319547788,
+                0.11223480492362514
+              ]
+            },
+            "per_seed_polyp_difference": {
+              "42": -0.004078610330284375,
+              "43": -0.021815931641475404,
+              "44": 0.006236649058198842
+            }
+          },
+          {
+            "augmentation": "a0",
+            "method": "cross_ensemble",
+            "baseline": "control_ensemble",
+            "polyp": {
+              "difference": -0.021750146754284445,
+              "n_groups": 186,
+              "ci95": [
+                -0.032967480873971756,
+                -0.01015094682691764
+              ],
+              "bonferroni_familywise95_interval": [
+                -0.038118406304196245,
+                -0.0044234618176992235
+              ]
+            },
+            "healthy": {
+              "difference": 0.11556722056563244,
+              "n_groups": 258,
+              "ci95": [
+                0.10569186755284295,
+                0.12561965587259707
+              ],
+              "bonferroni_familywise95_interval": [
+                0.10139372690754178,
+                0.1304618533008954
+              ]
+            },
+            "per_seed_polyp_difference": {
+              "42": -0.01703714976542772,
+              "43": -0.029835723808928447,
+              "44": -0.018377566688497184
+            }
+          },
+          {
+            "augmentation": "a1",
+            "method": "control_ensemble",
+            "baseline": "source",
+            "polyp": {
+              "difference": 0.010739296927274924,
+              "n_groups": 186,
+              "ci95": [
+                0.005129149264500892,
+                0.016580413541309662
+              ],
+              "bonferroni_familywise95_interval": [
+                0.0026575839503013947,
+                0.01946366842040867
+              ]
+            },
+            "healthy": {
+              "difference": -0.010402055143536143,
+              "n_groups": 258,
+              "ci95": [
+                -0.015236028786666037,
+                -0.005669784422900491
+              ],
+              "bonferroni_familywise95_interval": [
+                -0.01760027071729564,
+                -0.0034865117901862345
+              ]
+            },
+            "per_seed_polyp_difference": {
+              "42": 0.019444567255812905,
+              "43": 0.011165646967508002,
+              "44": 0.0016076765585038687
+            }
+          },
+          {
+            "augmentation": "a1",
+            "method": "cross_ensemble",
+            "baseline": "source",
+            "polyp": {
+              "difference": -0.01388803626205062,
+              "n_groups": 186,
+              "ci95": [
+                -0.026299816254171073,
+                -0.0011229760011633345
+              ],
+              "bonferroni_familywise95_interval": [
+                -0.03179513945426826,
+                0.005010761328992421
+              ]
+            },
+            "healthy": {
+              "difference": 0.09300276887243822,
+              "n_groups": 258,
+              "ci95": [
+                0.08497165715274113,
+                0.10118581201168765
+              ],
+              "bonferroni_familywise95_interval": [
+                0.08133724048883967,
+                0.1051170345357494
+              ]
+            },
+            "per_seed_polyp_difference": {
+              "42": -0.02153138333043701,
+              "43": -0.013936907856711409,
+              "44": -0.006195817599003451
+            }
+          },
+          {
+            "augmentation": "a1",
+            "method": "cross_ensemble",
+            "baseline": "control_ensemble",
+            "polyp": {
+              "difference": -0.024627333189325543,
+              "n_groups": 186,
+              "ci95": [
+                -0.03682249842078939,
+                -0.012270847739471149
+              ],
+              "bonferroni_familywise95_interval": [
+                -0.04243965332311166,
+                -0.006357040636120958
+              ]
+            },
+            "healthy": {
+              "difference": 0.10340482401597437,
+              "n_groups": 258,
+              "ci95": [
+                0.09481358623568352,
+                0.11242486343713566
+              ],
+              "bonferroni_familywise95_interval": [
+                0.09112183211592739,
+                0.11690062885734649
+              ]
+            },
+            "per_seed_polyp_difference": {
+              "42": -0.04097595058624991,
+              "43": -0.02510255482421941,
+              "44": -0.007803494157507319
+            }
+          }
+        ]
+      }
+    },
+    "external_teacher": {
+      "source_file": "runs/real/external_teacher/analysis.json",
+      "source_sha256": "abf74a79d9656b9191491a02495b16e2d8d0cd8ea73940ee2a7e66676e511fab",
+      "result": {
+        "status": "controlled_development_not_independent_confirmation",
+        "comparisons": {
+          "a0/external_ensemble_minus_control_ensemble": {
+            "video_equal_delta": 0.01263971984387897,
+            "ci95": [
+              0.005830749120940618,
+              0.01985012567992652
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.009525248703281402,
+              "43": 0.020473841935723224,
+              "44": 0.007920068892632292
+            }
+          },
+          "a0/external_ensemble_minus_self_ensemble": {
+            "video_equal_delta": 0.017703072782493928,
+            "ci95": [
+              0.013047862757884719,
+              0.023149026759306784
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.018024617567001456,
+              "43": 0.03287223853587258,
+              "44": 0.0022123622446077545
+            }
+          },
+          "a0/external_minus_control": {
+            "video_equal_delta": 0.016552187741673274,
+            "ci95": [
+              0.00515405452234655,
+              0.028099656328834596
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.009948669849881667,
+              "43": 0.02953494768023567,
+              "44": 0.010172945694902487
+            }
+          },
+          "a0/sam_minus_control_ensemble": {
+            "video_equal_delta": 0.008763428315317508,
+            "ci95": [
+              -0.02739376255661398,
+              0.04684941643980615
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.008467948337692818,
+              "43": -0.005838636190252708,
+              "44": 0.023660972798512408
+            }
+          },
+          "a0/source_sam_ensemble_minus_control_ensemble": {
+            "video_equal_delta": 0.030097452910246812,
+            "ci95": [
+              0.009797307744306845,
+              0.051807005884726566
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.023146555386751783,
+              "43": 0.018089526077905767,
+              "44": 0.049056277266082894
+            }
+          },
+          "a1/external_ensemble_minus_control_ensemble": {
+            "video_equal_delta": 0.013317051512836737,
+            "ci95": [
+              0.0059924425110817695,
+              0.021231180658722853
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.017219280003223685,
+              "43": 0.015865746091952976,
+              "44": 0.006866128443333547
+            }
+          },
+          "a1/external_ensemble_minus_self_ensemble": {
+            "video_equal_delta": 0.0001623763225758753,
+            "ci95": [
+              -0.0022579907308734773,
+              0.0028217607475340255
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.001141247282197173,
+              "43": 0.00018537973544231618,
+              "44": -0.0008394980499118632
+            }
+          },
+          "a1/external_minus_control": {
+            "video_equal_delta": 0.02154505167149594,
+            "ci95": [
+              0.008129072564278673,
+              0.03545464447895648
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.019084176234297978,
+              "43": 0.03731557038158796,
+              "44": 0.008235408398601882
+            }
+          },
+          "a1/sam_minus_control_ensemble": {
+            "video_equal_delta": 0.006149271457691468,
+            "ci95": [
+              -0.03491739128558246,
+              0.04886117601600234
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.009273713965694267,
+              "43": 0.007825963760201827,
+              "44": 0.0013481366471783135
+            }
+          },
+          "a1/source_sam_ensemble_minus_control_ensemble": {
+            "video_equal_delta": 0.035755751059924526,
+            "ci95": [
+              0.015893931500744807,
+              0.057812481299460365
+            ],
+            "per_seed_video_equal_delta": {
+              "42": 0.033687528255040906,
+              "43": 0.0392263841037511,
+              "44": 0.034353340820981536
+            }
+          }
+        },
+        "aggregate": {
+          "a0/CVC-ClinicDB": {
+            "control": {
+              "dice": 0.6269222827591268,
+              "precision": 0.6992539622227296,
+              "recall": 0.6715648450233823,
+              "small_positive_dice": 0.43729185087485584,
+              "empty_fpr": null,
+              "group_mean_dice": 0.5959420551311679
+            },
+            "control_ensemble": {
+              "dice": 0.6066871489667227,
+              "precision": 0.702190367176156,
+              "recall": 0.6400867632683975,
+              "small_positive_dice": 0.42188391809274134,
+              "empty_fpr": null,
+              "group_mean_dice": 0.5749484686172899
+            },
+            "external": {
+              "dice": 0.6415570871868368,
+              "precision": 0.7214931318391723,
+              "recall": 0.6871731436209,
+              "small_positive_dice": 0.4573275553498038,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6124942428728412
+            },
+            "external_ensemble": {
+              "dice": 0.6184891294076375,
+              "precision": 0.7133600781097351,
+              "recall": 0.6511884935390468,
+              "small_positive_dice": 0.44808690141050006,
+              "empty_fpr": null,
+              "group_mean_dice": 0.5875881884611689
+            },
+            "sam": {
+              "dice": 0.6147582257068254,
+              "precision": 0.6594731509254411,
+              "recall": 0.6898532137282808,
+              "small_positive_dice": 0.4201492568051132,
+              "empty_fpr": null,
+              "group_mean_dice": 0.5837118969326074
+            },
+            "self": {
+              "dice": 0.6168804792914947,
+              "precision": 0.7022105654232021,
+              "recall": 0.6629661453757205,
+              "small_positive_dice": 0.4446147906645719,
+              "empty_fpr": null,
+              "group_mean_dice": 0.587829506095601
+            },
+            "self_ensemble": {
+              "dice": 0.6006172482973896,
+              "precision": 0.6978153627020307,
+              "recall": 0.6373129113421723,
+              "small_positive_dice": 0.4215472691640672,
+              "empty_fpr": null,
+              "group_mean_dice": 0.569885115678675
+            },
+            "source": {
+              "dice": 0.5799775523834693,
+              "precision": 0.6853691454864834,
+              "recall": 0.6091872649603197,
+              "small_positive_dice": 0.40614170608697114,
+              "empty_fpr": null,
+              "group_mean_dice": 0.5482381353306676
+            },
+            "source_sam_ensemble": {
+              "dice": 0.6350794079710615,
+              "precision": 0.7231272406374256,
+              "recall": 0.6484695161355366,
+              "small_positive_dice": 0.4834325224230135,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6050459215275367
+            }
+          },
+          "a0/PolypGen-C1": {
+            "control": {
+              "dice": 0.653136697317033,
+              "precision": 0.7196303055958803,
+              "recall": 0.6964636108784058,
+              "small_positive_dice": 0.5159207548478676,
+              "empty_fpr": 0.7333333333333334,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.6398398169061844,
+              "precision": 0.7077549438247388,
+              "recall": 0.6734188679371679,
+              "small_positive_dice": 0.5039896097813927,
+              "empty_fpr": 0.6666666666666666,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.6669283371235603,
+              "precision": 0.73512846122685,
+              "recall": 0.7084435572349624,
+              "small_positive_dice": 0.5450111639491001,
+              "empty_fpr": 0.7333333333333334,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.6469625338854286,
+              "precision": 0.7160696575289572,
+              "recall": 0.6819366361376638,
+              "small_positive_dice": 0.5259526479094065,
+              "empty_fpr": 0.7333333333333334,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.6518386491185689,
+              "precision": 0.7219143033435103,
+              "recall": 0.6938392470407658,
+              "small_positive_dice": 0.5307661970687467,
+              "empty_fpr": 0.7333333333333334,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6393058011728195,
+              "precision": 0.7058539992898053,
+              "recall": 0.6741466780045661,
+              "small_positive_dice": 0.5061466211034347,
+              "empty_fpr": 0.6666666666666666,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6152743213856411,
+              "precision": 0.6925926856050258,
+              "recall": 0.6450960465727652,
+              "small_positive_dice": 0.46975782894810963,
+              "empty_fpr": 0.6666666666666666,
+              "group_mean_dice": null
+            }
+          },
+          "a0/PolypGen-C2": {
+            "control": {
+              "dice": 0.62109966439508,
+              "precision": 0.6472185760690892,
+              "recall": 0.7349470139233342,
+              "small_positive_dice": 0.32993486502608804,
+              "empty_fpr": 0.5483870967741935,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.6212215194895561,
+              "precision": 0.6555554062695447,
+              "recall": 0.7182667546097793,
+              "small_positive_dice": 0.331242313597748,
+              "empty_fpr": 0.4731182795698925,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.631135468134192,
+              "precision": 0.6550400730427834,
+              "recall": 0.7562332040793236,
+              "small_positive_dice": 0.3655393878240526,
+              "empty_fpr": 0.6129032258064516,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.6258022706723018,
+              "precision": 0.6576898438317569,
+              "recall": 0.7280751740784289,
+              "small_positive_dice": 0.3472052789767514,
+              "empty_fpr": 0.5053763440860215,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.6185375238277375,
+              "precision": 0.64696460632378,
+              "recall": 0.7394661925880253,
+              "small_positive_dice": 0.3364186982637168,
+              "empty_fpr": 0.6021505376344086,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6148695761820016,
+              "precision": 0.6500939582990213,
+              "recall": 0.7208088456526833,
+              "small_positive_dice": 0.3346432555785954,
+              "empty_fpr": 0.5376344086021505,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6017968518796644,
+              "precision": 0.6398931031697688,
+              "recall": 0.6993070911572382,
+              "small_positive_dice": 0.3251627167553158,
+              "empty_fpr": 0.4946236559139785,
+              "group_mean_dice": null
+            }
+          },
+          "a0/PolypGen-C3": {
+            "control": {
+              "dice": 0.7162014248405252,
+              "precision": 0.7560725963927865,
+              "recall": 0.7484313131127993,
+              "small_positive_dice": 0.4397349378600586,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.7038857523222161,
+              "precision": 0.7510470059509426,
+              "recall": 0.7253968535256242,
+              "small_positive_dice": 0.4246589661363447,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.7273237414973606,
+              "precision": 0.7634591369520816,
+              "recall": 0.7657640554580802,
+              "small_positive_dice": 0.46886337747013096,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.710504546377028,
+              "precision": 0.7541990809334153,
+              "recall": 0.7347691148174091,
+              "small_positive_dice": 0.43645406563831657,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.7113413614580777,
+              "precision": 0.7420840618764166,
+              "recall": 0.748262786541734,
+              "small_positive_dice": 0.4452970270429975,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6985229274861238,
+              "precision": 0.7425621914243249,
+              "recall": 0.724913462380526,
+              "small_positive_dice": 0.42230009297399146,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6772271488202797,
+              "precision": 0.7350951329642603,
+              "recall": 0.6975807060156217,
+              "small_positive_dice": 0.40128417321268406,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            }
+          },
+          "a0/PolypGen-C4": {
+            "control": {
+              "dice": 0.3850777845273889,
+              "precision": 0.41808769578941024,
+              "recall": 0.6415896368158808,
+              "small_positive_dice": 0.1578989762437436,
+              "empty_fpr": 0.5843621399176955,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.38846199487085714,
+              "precision": 0.4231575198612407,
+              "recall": 0.6118378444703326,
+              "small_positive_dice": 0.14597493916201268,
+              "empty_fpr": 0.5390946502057613,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.3917525665332473,
+              "precision": 0.4184702712575469,
+              "recall": 0.6615902592204344,
+              "small_positive_dice": 0.18767298673380658,
+              "empty_fpr": 0.6049382716049383,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.38953460063006645,
+              "precision": 0.42457685743585244,
+              "recall": 0.6216971461339608,
+              "small_positive_dice": 0.1558075977948245,
+              "empty_fpr": 0.5555555555555556,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.3852956597163327,
+              "precision": 0.4194664208405814,
+              "recall": 0.6352294262501352,
+              "small_positive_dice": 0.16706964635297425,
+              "empty_fpr": 0.5843621399176955,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.3774818388575352,
+              "precision": 0.41469571530024374,
+              "recall": 0.6095175215190314,
+              "small_positive_dice": 0.14145181153909042,
+              "empty_fpr": 0.5637860082304527,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.3765247609850006,
+              "precision": 0.4271229650603372,
+              "recall": 0.5851098374667174,
+              "small_positive_dice": 0.12970351117848988,
+              "empty_fpr": 0.522633744855967,
+              "group_mean_dice": null
+            }
+          },
+          "a0/PolypGen-C5": {
+            "control": {
+              "dice": 0.3783658231524797,
+              "precision": 0.4029365617424364,
+              "recall": 0.4614785695652513,
+              "small_positive_dice": 0.13509599239615774,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.3676661020814115,
+              "precision": 0.4022420875379071,
+              "recall": 0.4367528762618932,
+              "small_positive_dice": 0.12899206110343403,
+              "empty_fpr": 0.8333333333333334,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.38783739643649356,
+              "precision": 0.40769322889849346,
+              "recall": 0.48807039889700904,
+              "small_positive_dice": 0.14735705728709764,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.3735134507503692,
+              "precision": 0.3976648818142843,
+              "recall": 0.4512424558293927,
+              "small_positive_dice": 0.13274375513103698,
+              "empty_fpr": 0.8333333333333334,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.37687269309735244,
+              "precision": 0.3968461132577804,
+              "recall": 0.46900802080978254,
+              "small_positive_dice": 0.13632822232341882,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.3670424785299218,
+              "precision": 0.3959734800633809,
+              "recall": 0.4408893045070167,
+              "small_positive_dice": 0.13068795672970246,
+              "empty_fpr": 0.8333333333333334,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.35251871530594003,
+              "precision": 0.39016168844952914,
+              "recall": 0.41515385858396353,
+              "small_positive_dice": 0.12803069814548804,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            }
+          },
+          "a0/PolypGen-C6": {
+            "control": {
+              "dice": 0.626117860566782,
+              "precision": 0.6478917441228442,
+              "recall": 0.6950406721850662,
+              "small_positive_dice": 0.378599628013901,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.6273999471891192,
+              "precision": 0.6570871165304473,
+              "recall": 0.6767885672337742,
+              "small_positive_dice": 0.36707476000227623,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.6459321491949429,
+              "precision": 0.6653529272386522,
+              "recall": 0.7199306669574457,
+              "small_positive_dice": 0.43123330270487165,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.6428471639625389,
+              "precision": 0.6700336171144788,
+              "recall": 0.6932767032024761,
+              "small_positive_dice": 0.4068998279316085,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.6338661606423557,
+              "precision": 0.6536955052252972,
+              "recall": 0.7051253118940319,
+              "small_positive_dice": 0.4067930732336309,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6287310896018011,
+              "precision": 0.6616873441433365,
+              "recall": 0.6800842321033336,
+              "small_positive_dice": 0.37923286181120647,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6093526256145472,
+              "precision": 0.6543635823693352,
+              "recall": 0.6542762707298001,
+              "small_positive_dice": 0.36029524985139094,
+              "empty_fpr": 0.2,
+              "group_mean_dice": null
+            }
+          },
+          "a1/CVC-ClinicDB": {
+            "control": {
+              "dice": 0.6629791546129141,
+              "precision": 0.75107757989319,
+              "recall": 0.6845528625006729,
+              "small_positive_dice": 0.4850146385530631,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6279411814279309
+            },
+            "control_ensemble": {
+              "dice": 0.6557489333422215,
+              "precision": 0.7599328559991277,
+              "recall": 0.6688935468961541,
+              "small_positive_dice": 0.489744088302056,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6185593999310575
+            },
+            "external": {
+              "dice": 0.6804102554410552,
+              "precision": 0.7723324965064179,
+              "recall": 0.7003319174633066,
+              "small_positive_dice": 0.5062816209263272,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6494862330994268
+            },
+            "external_ensemble": {
+              "dice": 0.6671409589224788,
+              "precision": 0.7714008415840525,
+              "recall": 0.6789575754604859,
+              "small_positive_dice": 0.5012702126469877,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6318764514438943
+            },
+            "sam": {
+              "dice": 0.6601693944903388,
+              "precision": 0.7166263610910233,
+              "recall": 0.7233107639603886,
+              "small_positive_dice": 0.4446808453433699,
+              "empty_fpr": null,
+              "group_mean_dice": 0.624708671388749
+            },
+            "self": {
+              "dice": 0.681184681131936,
+              "precision": 0.7709461667016585,
+              "recall": 0.7036123623421289,
+              "small_positive_dice": 0.5011214751888204,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6497231559318557
+            },
+            "self_ensemble": {
+              "dice": 0.6673388801130504,
+              "precision": 0.7689690597007847,
+              "recall": 0.6807159249136483,
+              "small_positive_dice": 0.5007104396268174,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6317140751213184
+            },
+            "source": {
+              "dice": 0.6401945410845591,
+              "precision": 0.7582376971928102,
+              "recall": 0.647510141947988,
+              "small_positive_dice": 0.49175542913791204,
+              "empty_fpr": null,
+              "group_mean_dice": 0.6020511857679975
+            },
+            "source_sam_ensemble": {
+              "dice": 0.6896647467590747,
+              "precision": 0.7912701821316559,
+              "recall": 0.6812997129634001,
+              "small_positive_dice": 0.5260396508394344,
+              "empty_fpr": null,
+              "group_mean_dice": 0.654315150990982
+            }
+          },
+          "a1/PolypGen-C1": {
+            "control": {
+              "dice": 0.6677883092879426,
+              "precision": 0.7148405146836012,
+              "recall": 0.7103111413913036,
+              "small_positive_dice": 0.5359207543060761,
+              "empty_fpr": 0.6,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.6570356458494947,
+              "precision": 0.7173303945358688,
+              "recall": 0.6912623410129678,
+              "small_positive_dice": 0.5434300742985666,
+              "empty_fpr": 0.6666666666666666,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.6758500726555212,
+              "precision": 0.7283948285403312,
+              "recall": 0.7183616435880443,
+              "small_positive_dice": 0.535132402366446,
+              "empty_fpr": 0.4666666666666667,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.6636562059535814,
+              "precision": 0.7263679461029824,
+              "recall": 0.6972135869597574,
+              "small_positive_dice": 0.551100242623063,
+              "empty_fpr": 0.6,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.6722920059432909,
+              "precision": 0.7259482533202876,
+              "recall": 0.7191970872875117,
+              "small_positive_dice": 0.5324661895748257,
+              "empty_fpr": 0.5333333333333333,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6621099370507485,
+              "precision": 0.7216321682911561,
+              "recall": 0.697709372906805,
+              "small_positive_dice": 0.5492274679907764,
+              "empty_fpr": 0.6,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6378731014555493,
+              "precision": 0.7156363988954885,
+              "recall": 0.6666674601359167,
+              "small_positive_dice": 0.5399495855897897,
+              "empty_fpr": 0.6666666666666666,
+              "group_mean_dice": null
+            }
+          },
+          "a1/PolypGen-C2": {
+            "control": {
+              "dice": 0.6222629840753584,
+              "precision": 0.6526385152652097,
+              "recall": 0.7291177486826329,
+              "small_positive_dice": 0.33824857140765135,
+              "empty_fpr": 0.5913978494623656,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.6218716248585691,
+              "precision": 0.6584001164637137,
+              "recall": 0.7193827454213124,
+              "small_positive_dice": 0.34775101359506755,
+              "empty_fpr": 0.5806451612903226,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.6223798809104556,
+              "precision": 0.6512057891976478,
+              "recall": 0.7477815100343167,
+              "small_positive_dice": 0.370229709826634,
+              "empty_fpr": 0.6989247311827957,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.6237907654111782,
+              "precision": 0.6603528933750686,
+              "recall": 0.7286972749501556,
+              "small_positive_dice": 0.364082941822104,
+              "empty_fpr": 0.6236559139784946,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.6281710643233521,
+              "precision": 0.653773617049139,
+              "recall": 0.7512706089018222,
+              "small_positive_dice": 0.3732958334235095,
+              "empty_fpr": 0.6666666666666666,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6239822189603395,
+              "precision": 0.6617479261630365,
+              "recall": 0.7306404395258201,
+              "small_positive_dice": 0.3656925579035251,
+              "empty_fpr": 0.6344086021505376,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6142204393420507,
+              "precision": 0.6605901336965202,
+              "recall": 0.7070422858567181,
+              "small_positive_dice": 0.35321591022053594,
+              "empty_fpr": 0.5913978494623656,
+              "group_mean_dice": null
+            }
+          },
+          "a1/PolypGen-C3": {
+            "control": {
+              "dice": 0.7381825968711471,
+              "precision": 0.7800533755184481,
+              "recall": 0.766059100074608,
+              "small_positive_dice": 0.4753086874751668,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.7306878530090223,
+              "precision": 0.7849045341717585,
+              "recall": 0.7500380687174448,
+              "small_positive_dice": 0.47383308025657017,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.7504463339483272,
+              "precision": 0.7888399332049857,
+              "recall": 0.781606754861408,
+              "small_positive_dice": 0.5271601057223354,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.7370408291550588,
+              "precision": 0.791914282991591,
+              "recall": 0.7572396940265627,
+              "small_positive_dice": 0.49763871217146516,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.7478837892693352,
+              "precision": 0.7830889075836553,
+              "recall": 0.7845644051439036,
+              "small_positive_dice": 0.5272129095902895,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.7366188010526392,
+              "precision": 0.7901874360551623,
+              "recall": 0.759376559721959,
+              "small_positive_dice": 0.4986459183025561,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.719066446481638,
+              "precision": 0.7830411068324806,
+              "recall": 0.7324430773354897,
+              "small_positive_dice": 0.4775566738711572,
+              "empty_fpr": 0.3333333333333333,
+              "group_mean_dice": null
+            }
+          },
+          "a1/PolypGen-C4": {
+            "control": {
+              "dice": 0.4035272787042978,
+              "precision": 0.43697542045075527,
+              "recall": 0.6303271913829537,
+              "small_positive_dice": 0.140249298928782,
+              "empty_fpr": 0.551440329218107,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.4073846219040839,
+              "precision": 0.4453252940225858,
+              "recall": 0.613580659511376,
+              "small_positive_dice": 0.1306333330183745,
+              "empty_fpr": 0.5185185185185185,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.3902952352798289,
+              "precision": 0.41840996185085616,
+              "recall": 0.639818178400826,
+              "small_positive_dice": 0.16497038773557915,
+              "empty_fpr": 0.6008230452674896,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.39782288751457906,
+              "precision": 0.43367949386277554,
+              "recall": 0.6177212106040542,
+              "small_positive_dice": 0.13957546687235534,
+              "empty_fpr": 0.5514403292181069,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.3882317984043846,
+              "precision": 0.41478609182198684,
+              "recall": 0.6454720368538146,
+              "small_positive_dice": 0.16959546301459763,
+              "empty_fpr": 0.6090534979423868,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.3924005567464566,
+              "precision": 0.42812231588424404,
+              "recall": 0.6218117378886636,
+              "small_positive_dice": 0.14457668439356985,
+              "empty_fpr": 0.5720164609053499,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.39413251172803837,
+              "precision": 0.4450843904443323,
+              "recall": 0.6002435340872924,
+              "small_positive_dice": 0.13345368692828272,
+              "empty_fpr": 0.5349794238683128,
+              "group_mean_dice": null
+            }
+          },
+          "a1/PolypGen-C5": {
+            "control": {
+              "dice": 0.39410809521264156,
+              "precision": 0.4238922856567138,
+              "recall": 0.4679693451996991,
+              "small_positive_dice": 0.14652496723558855,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.3899923955844152,
+              "precision": 0.42525773474508005,
+              "recall": 0.45585948765853035,
+              "small_positive_dice": 0.1493654679129454,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.4005989290349251,
+              "precision": 0.42185693911699507,
+              "recall": 0.4960171899604178,
+              "small_positive_dice": 0.1552133429837455,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.3974501681832291,
+              "precision": 0.423473693173095,
+              "recall": 0.4727402966695174,
+              "small_positive_dice": 0.15633959823963442,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.4043434729026045,
+              "precision": 0.4186587658944588,
+              "recall": 0.5029929155784418,
+              "small_positive_dice": 0.16188289494115254,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.3985819200909016,
+              "precision": 0.42308615492714663,
+              "recall": 0.4760729514553252,
+              "small_positive_dice": 0.15878545885867867,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.3825446119482923,
+              "precision": 0.42987983213280156,
+              "recall": 0.442382075003386,
+              "small_positive_dice": 0.1509709611581219,
+              "empty_fpr": 1,
+              "group_mean_dice": null
+            }
+          },
+          "a1/PolypGen-C6": {
+            "control": {
+              "dice": 0.6384419413408536,
+              "precision": 0.6712765060258266,
+              "recall": 0.6894371822589193,
+              "small_positive_dice": 0.35210469393392224,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "control_ensemble": {
+              "dice": 0.6384523157488949,
+              "precision": 0.6801333942196586,
+              "recall": 0.6808065924472457,
+              "small_positive_dice": 0.3559087528625415,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "external": {
+              "dice": 0.6590848713689907,
+              "precision": 0.6931180699735485,
+              "recall": 0.7030035322038174,
+              "small_positive_dice": 0.39812470138782546,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "external_ensemble": {
+              "dice": 0.6519693738904827,
+              "precision": 0.6959759667145894,
+              "recall": 0.6894508094555931,
+              "small_positive_dice": 0.3813492677087659,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "self": {
+              "dice": 0.655402391043026,
+              "precision": 0.6861686448383173,
+              "recall": 0.7067577328301867,
+              "small_positive_dice": 0.4025083311375171,
+              "empty_fpr": 0.2,
+              "group_mean_dice": null
+            },
+            "self_ensemble": {
+              "dice": 0.6526248881321711,
+              "precision": 0.6935706821862947,
+              "recall": 0.6915458350435294,
+              "small_positive_dice": 0.3858498061031458,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            },
+            "source": {
+              "dice": 0.6337594244572701,
+              "precision": 0.6840991508215666,
+              "recall": 0.6696202721531418,
+              "small_positive_dice": 0.3668593570353493,
+              "empty_fpr": 0.13333333333333333,
+              "group_mean_dice": null
+            }
+          }
+        }
+      }
+    },
+    "relative_presence": {
+      "source_file": "runs/real/relative_presence/analysis.json",
+      "source_sha256": "fcecdc07f32ed1e29f9e8a8704419b4ec7c06c07a453477241f64a67652d38ca",
+      "result": {
+        "status": "posthoc_development_relative_feature_repair_all_cohorts_already_used_no_new_confirmation",
+        "primary": {
+          "a0": {
+            "positive_difference": -0.0003595161951915717,
+            "positive_ci95": [
+              -0.0009108552040269817,
+              -4.10367520378152e-06
+            ],
+            "negative_FPR_reduction": 0.06256750049017389,
+            "reduction_ci95": [
+              0.03260478180651724,
+              0.09902604785487042
+            ],
+            "passed": true
+          },
+          "a1": {
+            "positive_difference": -0.0010387850893731222,
+            "positive_ci95": [
+              -0.002710650446064077,
+              -8.384084422141297e-05
+            ],
+            "negative_FPR_reduction": 0.06858187394280958,
+            "reduction_ci95": [
+              0.04761477627583024,
+              0.09008854443729093
+            ],
+            "passed": true
+          }
+        },
+        "primary_joint_passed": true,
+        "group_means": {
+          "a0/CVC-ClinicDB/external_balanced": 0.6200680667193813,
+          "a0/CVC-ClinicDB/external_normal": 0.6002947274234155,
+          "a0/CVC-ClinicDB/external_previous": 0.6124942428728413,
+          "a0/CVC-ClinicDB/sam_gate": 0.25699576004176855,
+          "a0/CVC-ClinicDB/sam_relative_gate": 0.6121347266776497,
+          "a0/CVC-ClinicDB/self_normal": 0.5983320559777972,
+          "a0/CVC-ClinicDB/self_previous": 0.587829506095601,
+          "a0/CVC-ClinicDB/source_balanced": 0.6001495750134495,
+          "a0/CVC-ClinicDB/source_normal": 0.5727316360111013,
+          "a0/CVC-ClinicDB/source_previous": 0.595942055131168,
+          "a0/CVC-ClinicDB/unet_gate": 0.5620788281167894,
+          "a0/CVC-ClinicDB/unet_relative_gate": 0.6115164769733374,
+          "a0/normal_holdout/external_balanced": 0.2702418273062539,
+          "a0/normal_holdout/external_normal": 0.2044687966420418,
+          "a0/normal_holdout/external_previous": 0.3370785972322665,
+          "a0/normal_holdout/sam_gate": 0.02385576878727578,
+          "a0/normal_holdout/sam_relative_gate": 0.2745110967420926,
+          "a0/normal_holdout/self_normal": 0.19761202065014508,
+          "a0/normal_holdout/self_previous": 0.2866854927369039,
+          "a0/normal_holdout/source_balanced": 0.2323191610624791,
+          "a0/normal_holdout/source_normal": 0.1720057221331395,
+          "a0/normal_holdout/source_previous": 0.3059433840748264,
+          "a0/normal_holdout/unet_gate": 0.060196005916415864,
+          "a0/normal_holdout/unet_relative_gate": 0.2368996513656602,
+          "a0/normal_diagnostic/external_balanced": 0.30569423238812227,
+          "a0/normal_diagnostic/external_normal": 0.17666612252214187,
+          "a0/normal_diagnostic/external_previous": 0.3433188654906743,
+          "a0/normal_diagnostic/sam_gate": 0.17184540213880806,
+          "a0/normal_diagnostic/sam_relative_gate": 0.22996659912872858,
+          "a0/normal_diagnostic/self_normal": 0.20364008680705595,
+          "a0/normal_diagnostic/self_previous": 0.2888964108867315,
+          "a0/normal_diagnostic/source_balanced": 0.21101796637186837,
+          "a0/normal_diagnostic/source_normal": 0.11191900568791072,
+          "a0/normal_diagnostic/source_previous": 0.27073910830716635,
+          "a0/normal_diagnostic/unet_gate": 0.20744765809799082,
+          "a0/normal_diagnostic/unet_relative_gate": 0.28899419685868566,
+          "a0/PolypGen-C6/external_balanced": 0.6625227853973311,
+          "a0/PolypGen-C6/external_normal": 0.6518184902061793,
+          "a0/PolypGen-C6/external_previous": 0.6459321491949429,
+          "a0/PolypGen-C6/sam_gate": 0.4801407820142975,
+          "a0/PolypGen-C6/sam_relative_gate": 0.6486553244370347,
+          "a0/PolypGen-C6/self_normal": 0.6531107214872133,
+          "a0/PolypGen-C6/self_previous": 0.6338661606423557,
+          "a0/PolypGen-C6/source_balanced": 0.6549307789510667,
+          "a0/PolypGen-C6/source_normal": 0.6247182195524642,
+          "a0/PolypGen-C6/source_previous": 0.626117860566782,
+          "a0/PolypGen-C6/unet_gate": 0.5143594724570656,
+          "a0/PolypGen-C6/unet_relative_gate": 0.6406248071562556,
+          "a1/CVC-ClinicDB/external_balanced": 0.6420260746215839,
+          "a1/CVC-ClinicDB/external_normal": 0.627329040356242,
+          "a1/CVC-ClinicDB/external_previous": 0.6494862330994268,
+          "a1/CVC-ClinicDB/sam_gate": 0.2765385702827199,
+          "a1/CVC-ClinicDB/sam_relative_gate": 0.6484474480100536,
+          "a1/CVC-ClinicDB/self_normal": 0.629608209764256,
+          "a1/CVC-ClinicDB/self_previous": 0.6497231559318557,
+          "a1/CVC-ClinicDB/source_balanced": 0.622163515889278,
+          "a1/CVC-ClinicDB/source_normal": 0.5949575853775851,
+          "a1/CVC-ClinicDB/source_previous": 0.6279411814279308,
+          "a1/CVC-ClinicDB/unet_gate": 0.6381219245613641,
+          "a1/CVC-ClinicDB/unet_relative_gate": 0.6436162169682145,
+          "a1/normal_holdout/external_balanced": 0.2766249798333379,
+          "a1/normal_holdout/external_normal": 0.21568594180791437,
+          "a1/normal_holdout/external_previous": 0.32946567975256397,
+          "a1/normal_holdout/sam_gate": 0.02183597829051156,
+          "a1/normal_holdout/sam_relative_gate": 0.2608838058097543,
+          "a1/normal_holdout/self_normal": 0.21553345311297906,
+          "a1/normal_holdout/self_previous": 0.3256638763467308,
+          "a1/normal_holdout/source_balanced": 0.24061673184538096,
+          "a1/normal_holdout/source_normal": 0.15714542065982495,
+          "a1/normal_holdout/source_previous": 0.28726510177675,
+          "a1/normal_holdout/unet_gate": 0.09023464583975781,
+          "a1/normal_holdout/unet_relative_gate": 0.19752848475196744,
+          "a1/normal_diagnostic/external_balanced": 0.386980702074471,
+          "a1/normal_diagnostic/external_normal": 0.2611205536190412,
+          "a1/normal_diagnostic/external_previous": 0.4345060448055003,
+          "a1/normal_diagnostic/sam_gate": 0.22604995886907567,
+          "a1/normal_diagnostic/sam_relative_gate": 0.252491701795997,
+          "a1/normal_diagnostic/self_normal": 0.30866638179100364,
+          "a1/normal_diagnostic/self_previous": 0.4891720841055385,
+          "a1/normal_diagnostic/source_balanced": 0.29234660725888795,
+          "a1/normal_diagnostic/source_normal": 0.152212667684537,
+          "a1/normal_diagnostic/source_previous": 0.3091727562840691,
+          "a1/normal_diagnostic/unet_gate": 0.3128967853861986,
+          "a1/normal_diagnostic/unet_relative_gate": 0.27967220093656875,
+          "a1/PolypGen-C6/external_balanced": 0.6526653735870213,
+          "a1/PolypGen-C6/external_normal": 0.6539978290163687,
+          "a1/PolypGen-C6/external_previous": 0.6590848713689906,
+          "a1/PolypGen-C6/sam_gate": 0.47402930268171156,
+          "a1/PolypGen-C6/sam_relative_gate": 0.6627919304495057,
+          "a1/PolypGen-C6/self_normal": 0.6559973067999112,
+          "a1/PolypGen-C6/self_previous": 0.655402391043026,
+          "a1/PolypGen-C6/source_balanced": 0.6465876150989172,
+          "a1/PolypGen-C6/source_normal": 0.626266152005304,
+          "a1/PolypGen-C6/source_previous": 0.6384419413408536,
+          "a1/PolypGen-C6/unet_gate": 0.6264919216857489,
+          "a1/PolypGen-C6/unet_relative_gate": 0.6383359005505388
+        },
+        "frame_equal_means": {
+          "a0/CVC-ClinicDB/source_normal": 0.6070122570342876,
+          "a0/CVC-ClinicDB/self_normal": 0.6313318097689476,
+          "a0/CVC-ClinicDB/external_normal": 0.6329463313878597,
+          "a0/CVC-ClinicDB/source_previous": 0.6269222827591268,
+          "a0/CVC-ClinicDB/self_previous": 0.6168804792914947,
+          "a0/CVC-ClinicDB/external_previous": 0.6415570871868368,
+          "a0/CVC-ClinicDB/unet_relative_gate": 0.6404837629380722,
+          "a0/CVC-ClinicDB/sam_relative_gate": 0.6411364924547814,
+          "a0/CVC-ClinicDB/unet_gate": 0.5954870774260398,
+          "a0/CVC-ClinicDB/sam_gate": 0.28008387811702967,
+          "a0/PolypGen-C6/source_normal": 0.6247182195524643,
+          "a0/PolypGen-C6/self_normal": 0.6531107214872133,
+          "a0/PolypGen-C6/external_normal": 0.6518184902061793,
+          "a0/PolypGen-C6/source_previous": 0.626117860566782,
+          "a0/PolypGen-C6/self_previous": 0.6338661606423557,
+          "a0/PolypGen-C6/external_previous": 0.6459321491949429,
+          "a0/PolypGen-C6/unet_relative_gate": 0.6406248071562555,
+          "a0/PolypGen-C6/sam_relative_gate": 0.6486553244370347,
+          "a0/PolypGen-C6/unet_gate": 0.5143594724570655,
+          "a0/PolypGen-C6/sam_gate": 0.4801407820142975,
+          "a0/normal_diagnostic/source_normal": 0.09986320109439124,
+          "a0/normal_diagnostic/self_normal": 0.18969448244414044,
+          "a0/normal_diagnostic/external_normal": 0.16552667578659372,
+          "a0/normal_diagnostic/source_previous": 0.2549019607843137,
+          "a0/normal_diagnostic/self_previous": 0.280437756497948,
+          "a0/normal_diagnostic/external_previous": 0.33059735522115824,
+          "a0/normal_diagnostic/unet_relative_gate": 0.2781577747378021,
+          "a0/normal_diagnostic/sam_relative_gate": 0.22024623803009577,
+          "a0/normal_diagnostic/unet_gate": 0.20656634746922026,
+          "a0/normal_diagnostic/sam_gate": 0.1714546283629731,
+          "a0/normal_holdout/source_normal": 0.1768281101614435,
+          "a0/normal_holdout/self_normal": 0.20474833808167142,
+          "a0/normal_holdout/external_normal": 0.2104463437796771,
+          "a0/normal_holdout/source_previous": 0.32155745489078824,
+          "a0/normal_holdout/self_previous": 0.30009496676163344,
+          "a0/normal_holdout/external_previous": 0.35156695156695156,
+          "a0/normal_holdout/unet_relative_gate": 0.24843304843304842,
+          "a0/normal_holdout/sam_relative_gate": 0.2883190883190883,
+          "a0/normal_holdout/unet_gate": 0.06286799620132953,
+          "a0/normal_holdout/sam_gate": 0.02507122507122507,
+          "a1/CVC-ClinicDB/source_normal": 0.6376371406665607,
+          "a1/CVC-ClinicDB/self_normal": 0.6687597172566939,
+          "a1/CVC-ClinicDB/external_normal": 0.6668719916690249,
+          "a1/CVC-ClinicDB/source_previous": 0.6629791546129141,
+          "a1/CVC-ClinicDB/self_previous": 0.681184681131936,
+          "a1/CVC-ClinicDB/external_previous": 0.6804102554410552,
+          "a1/CVC-ClinicDB/unet_relative_gate": 0.674822601900198,
+          "a1/CVC-ClinicDB/sam_relative_gate": 0.6791904266516485,
+          "a1/CVC-ClinicDB/unet_gate": 0.6709329723428444,
+          "a1/CVC-ClinicDB/sam_gate": 0.29688017318464355,
+          "a1/PolypGen-C6/source_normal": 0.626266152005304,
+          "a1/PolypGen-C6/self_normal": 0.6559973067999112,
+          "a1/PolypGen-C6/external_normal": 0.6539978290163686,
+          "a1/PolypGen-C6/source_previous": 0.6384419413408536,
+          "a1/PolypGen-C6/self_previous": 0.655402391043026,
+          "a1/PolypGen-C6/external_previous": 0.6590848713689907,
+          "a1/PolypGen-C6/unet_relative_gate": 0.6383359005505388,
+          "a1/PolypGen-C6/sam_relative_gate": 0.6627919304495057,
+          "a1/PolypGen-C6/unet_gate": 0.626491921685749,
+          "a1/PolypGen-C6/sam_gate": 0.47402930268171156,
+          "a1/normal_diagnostic/source_normal": 0.14272685818513453,
+          "a1/normal_diagnostic/self_normal": 0.3014135886912905,
+          "a1/normal_diagnostic/external_normal": 0.2549019607843137,
+          "a1/normal_diagnostic/source_previous": 0.3064295485636115,
+          "a1/normal_diagnostic/self_previous": 0.4860921112631099,
+          "a1/normal_diagnostic/external_previous": 0.43091655266757867,
+          "a1/normal_diagnostic/unet_relative_gate": 0.275421796625627,
+          "a1/normal_diagnostic/sam_relative_gate": 0.253077975376197,
+          "a1/normal_diagnostic/unet_gate": 0.3009575923392613,
+          "a1/normal_diagnostic/sam_gate": 0.2248062015503876,
+          "a1/normal_holdout/source_normal": 0.16695156695156696,
+          "a1/normal_holdout/self_normal": 0.22867996201329535,
+          "a1/normal_holdout/external_normal": 0.22773029439696107,
+          "a1/normal_holdout/source_previous": 0.3063627730294397,
+          "a1/normal_holdout/self_previous": 0.3479582146248813,
+          "a1/normal_holdout/external_previous": 0.34909781576448246,
+          "a1/normal_holdout/unet_relative_gate": 0.20816714150047483,
+          "a1/normal_holdout/sam_relative_gate": 0.27901234567901234,
+          "a1/normal_holdout/unet_gate": 0.09762583095916429,
+          "a1/normal_holdout/sam_gate": 0.02298195631528965,
+          "a0/CVC-ClinicDB/source_balanced": 0.631896670097009,
+          "a0/CVC-ClinicDB/external_balanced": 0.6517624190703747,
+          "a0/PolypGen-C6/source_balanced": 0.6549307789510667,
+          "a0/PolypGen-C6/external_balanced": 0.6625227853973311,
+          "a0/normal_diagnostic/source_balanced": 0.20018239854081168,
+          "a0/normal_diagnostic/external_balanced": 0.29457364341085274,
+          "a0/normal_holdout/source_balanced": 0.2406457739791073,
+          "a0/normal_holdout/external_balanced": 0.28205128205128205,
+          "a1/CVC-ClinicDB/source_balanced": 0.6613323806645003,
+          "a1/CVC-ClinicDB/external_balanced": 0.6773123532801691,
+          "a1/PolypGen-C6/source_balanced": 0.6465876150989172,
+          "a1/PolypGen-C6/external_balanced": 0.6526653735870214,
+          "a1/normal_diagnostic/source_balanced": 0.2872777017783858,
+          "a1/normal_diagnostic/external_balanced": 0.3807569539443684,
+          "a1/normal_holdout/source_balanced": 0.25679012345679014,
+          "a1/normal_holdout/external_balanced": 0.294017094017094
+        }
+      }
+    },
+    "matched_presence": {
+      "source_file": "runs/real/matched_presence/analysis.json",
+      "source_sha256": "5eedae44023b893ccc33507ac5f7e2a1d4dda8954f3c0b7cd20874f68f9a406a",
+      "result": {
+        "status": "matched_pipeline_development_UDA_contribution_separate_from_previous_gate_retention_success",
+        "primary": {
+          "a0": {
+            "positive_difference": 0.015760174647077983,
+            "positive_ci95": [
+              0.004301231771715998,
+              0.027359810958838836
+            ],
+            "negative_FPR_reduction": 0.0371572266336334,
+            "reduction_ci95": [
+              0.003077479273317678,
+              0.06728438150448966
+            ],
+            "passed": true
+          },
+          "a1": {
+            "positive_difference": 0.021693347171578354,
+            "positive_ci95": [
+              0.007611115914663376,
+              0.03666442294933696
+            ],
+            "negative_FPR_reduction": -0.03272685738525242,
+            "reduction_ci95": [
+              -0.04905201777698574,
+              -0.017087779373942184
+            ],
+            "passed": false
+          }
+        },
+        "primary_joint_passed": false,
+        "group_means": {
+          "a0/CVC-ClinicDB/external_balanced": 0.6200680667193813,
+          "a0/CVC-ClinicDB/external_normal": 0.6002947274234155,
+          "a0/CVC-ClinicDB/external_previous": 0.6124942428728413,
+          "a0/CVC-ClinicDB/sam_gate": 0.25699576004176855,
+          "a0/CVC-ClinicDB/sam_relative_gate": 0.6121347266776497,
+          "a0/CVC-ClinicDB/self_normal": 0.5983320559777972,
+          "a0/CVC-ClinicDB/self_previous": 0.587829506095601,
+          "a0/CVC-ClinicDB/self_relative_gate": 0.5853648289064851,
+          "a0/CVC-ClinicDB/source_balanced": 0.6001495750134495,
+          "a0/CVC-ClinicDB/source_normal": 0.5727316360111013,
+          "a0/CVC-ClinicDB/source_previous": 0.595942055131168,
+          "a0/CVC-ClinicDB/source_relative_gate": 0.5957563023262595,
+          "a0/CVC-ClinicDB/unet_gate": 0.5620788281167894,
+          "a0/CVC-ClinicDB/unet_relative_gate": 0.6115164769733374,
+          "a0/normal_holdout/external_balanced": 0.2702418273062539,
+          "a0/normal_holdout/external_normal": 0.2044687966420418,
+          "a0/normal_holdout/external_previous": 0.3370785972322665,
+          "a0/normal_holdout/sam_gate": 0.02385576878727578,
+          "a0/normal_holdout/sam_relative_gate": 0.2745110967420926,
+          "a0/normal_holdout/self_normal": 0.19761202065014508,
+          "a0/normal_holdout/self_previous": 0.2866854927369039,
+          "a0/normal_holdout/self_relative_gate": 0.2147546986457126,
+          "a0/normal_holdout/source_balanced": 0.2323191610624791,
+          "a0/normal_holdout/source_normal": 0.1720057221331395,
+          "a0/normal_holdout/source_previous": 0.3059433840748264,
+          "a0/normal_holdout/source_relative_gate": 0.2740568779992936,
+          "a0/normal_holdout/unet_gate": 0.060196005916415864,
+          "a0/normal_holdout/unet_relative_gate": 0.2368996513656602,
+          "a0/normal_diagnostic/external_balanced": 0.30569423238812227,
+          "a0/normal_diagnostic/external_normal": 0.17666612252214187,
+          "a0/normal_diagnostic/external_previous": 0.3433188654906743,
+          "a0/normal_diagnostic/sam_gate": 0.17184540213880806,
+          "a0/normal_diagnostic/sam_relative_gate": 0.22996659912872858,
+          "a0/normal_diagnostic/self_normal": 0.20364008680705595,
+          "a0/normal_diagnostic/self_previous": 0.2888964108867315,
+          "a0/normal_diagnostic/self_relative_gate": 0.2362265817801208,
+          "a0/normal_diagnostic/source_balanced": 0.21101796637186837,
+          "a0/normal_diagnostic/source_normal": 0.11191900568791072,
+          "a0/normal_diagnostic/source_previous": 0.27073910830716635,
+          "a0/normal_diagnostic/source_relative_gate": 0.2524562523806323,
+          "a0/normal_diagnostic/unet_gate": 0.20744765809799082,
+          "a0/normal_diagnostic/unet_relative_gate": 0.28899419685868566,
+          "a0/PolypGen-C6/external_balanced": 0.6625227853973311,
+          "a0/PolypGen-C6/external_normal": 0.6518184902061793,
+          "a0/PolypGen-C6/external_previous": 0.6459321491949429,
+          "a0/PolypGen-C6/sam_gate": 0.4801407820142975,
+          "a0/PolypGen-C6/sam_relative_gate": 0.6486553244370347,
+          "a0/PolypGen-C6/self_normal": 0.6531107214872133,
+          "a0/PolypGen-C6/self_previous": 0.6338661606423557,
+          "a0/PolypGen-C6/self_relative_gate": 0.6317705337494386,
+          "a0/PolypGen-C6/source_balanced": 0.6549307789510667,
+          "a0/PolypGen-C6/source_normal": 0.6247182195524642,
+          "a0/PolypGen-C6/source_previous": 0.626117860566782,
+          "a0/PolypGen-C6/source_relative_gate": 0.6299057393546609,
+          "a0/PolypGen-C6/unet_gate": 0.5143594724570656,
+          "a0/PolypGen-C6/unet_relative_gate": 0.6406248071562556,
+          "a1/CVC-ClinicDB/external_balanced": 0.6420260746215839,
+          "a1/CVC-ClinicDB/external_normal": 0.627329040356242,
+          "a1/CVC-ClinicDB/external_previous": 0.6494862330994268,
+          "a1/CVC-ClinicDB/sam_gate": 0.2765385702827199,
+          "a1/CVC-ClinicDB/sam_relative_gate": 0.6484474480100536,
+          "a1/CVC-ClinicDB/self_normal": 0.629608209764256,
+          "a1/CVC-ClinicDB/self_previous": 0.6497231559318557,
+          "a1/CVC-ClinicDB/self_relative_gate": 0.6479990574173442,
+          "a1/CVC-ClinicDB/source_balanced": 0.622163515889278,
+          "a1/CVC-ClinicDB/source_normal": 0.5949575853775851,
+          "a1/CVC-ClinicDB/source_previous": 0.6279411814279308,
+          "a1/CVC-ClinicDB/source_relative_gate": 0.6219228697966362,
+          "a1/CVC-ClinicDB/unet_gate": 0.6381219245613641,
+          "a1/CVC-ClinicDB/unet_relative_gate": 0.6436162169682145,
+          "a1/normal_holdout/external_balanced": 0.2766249798333379,
+          "a1/normal_holdout/external_normal": 0.21568594180791437,
+          "a1/normal_holdout/external_previous": 0.32946567975256397,
+          "a1/normal_holdout/sam_gate": 0.02183597829051156,
+          "a1/normal_holdout/sam_relative_gate": 0.2608838058097543,
+          "a1/normal_holdout/self_normal": 0.21553345311297906,
+          "a1/normal_holdout/self_previous": 0.3256638763467308,
+          "a1/normal_holdout/self_relative_gate": 0.23681981301843266,
+          "a1/normal_holdout/source_balanced": 0.24061673184538096,
+          "a1/normal_holdout/source_normal": 0.15714542065982495,
+          "a1/normal_holdout/source_previous": 0.28726510177675,
+          "a1/normal_holdout/source_relative_gate": 0.16480162736671505,
+          "a1/normal_holdout/unet_gate": 0.09023464583975781,
+          "a1/normal_holdout/unet_relative_gate": 0.19752848475196744,
+          "a1/normal_diagnostic/external_balanced": 0.386980702074471,
+          "a1/normal_diagnostic/external_normal": 0.2611205536190412,
+          "a1/normal_diagnostic/external_previous": 0.4345060448055003,
+          "a1/normal_diagnostic/sam_gate": 0.22604995886907567,
+          "a1/normal_diagnostic/sam_relative_gate": 0.252491701795997,
+          "a1/normal_diagnostic/self_normal": 0.30866638179100364,
+          "a1/normal_diagnostic/self_previous": 0.4891720841055385,
+          "a1/normal_diagnostic/self_relative_gate": 0.3734160593053515,
+          "a1/normal_diagnostic/source_balanced": 0.29234660725888795,
+          "a1/normal_diagnostic/source_normal": 0.152212667684537,
+          "a1/normal_diagnostic/source_previous": 0.3091727562840691,
+          "a1/normal_diagnostic/source_relative_gate": 0.20653965693288137,
+          "a1/normal_diagnostic/unet_gate": 0.3128967853861986,
+          "a1/normal_diagnostic/unet_relative_gate": 0.27967220093656875,
+          "a1/PolypGen-C6/external_balanced": 0.6526653735870213,
+          "a1/PolypGen-C6/external_normal": 0.6539978290163687,
+          "a1/PolypGen-C6/external_previous": 0.6590848713689906,
+          "a1/PolypGen-C6/sam_gate": 0.47402930268171156,
+          "a1/PolypGen-C6/sam_relative_gate": 0.6627919304495057,
+          "a1/PolypGen-C6/self_normal": 0.6559973067999112,
+          "a1/PolypGen-C6/self_previous": 0.655402391043026,
+          "a1/PolypGen-C6/self_relative_gate": 0.6455137795119575,
+          "a1/PolypGen-C6/source_balanced": 0.6465876150989172,
+          "a1/PolypGen-C6/source_normal": 0.626266152005304,
+          "a1/PolypGen-C6/source_previous": 0.6384419413408536,
+          "a1/PolypGen-C6/source_relative_gate": 0.6310417643167745,
+          "a1/PolypGen-C6/unet_gate": 0.6264919216857489,
+          "a1/PolypGen-C6/unet_relative_gate": 0.6383359005505388
+        },
+        "frame_equal_means": {
+          "a0/CVC-ClinicDB/source_normal": 0.6070122570342876,
+          "a0/CVC-ClinicDB/self_normal": 0.6313318097689476,
+          "a0/CVC-ClinicDB/external_normal": 0.6329463313878597,
+          "a0/CVC-ClinicDB/source_previous": 0.6269222827591268,
+          "a0/CVC-ClinicDB/source_relative_gate": 0.6267416944291903,
+          "a0/CVC-ClinicDB/self_previous": 0.6168804792914947,
+          "a0/CVC-ClinicDB/self_relative_gate": 0.6146566478739919,
+          "a0/CVC-ClinicDB/external_previous": 0.6415570871868368,
+          "a0/CVC-ClinicDB/unet_relative_gate": 0.6404837629380722,
+          "a0/CVC-ClinicDB/sam_relative_gate": 0.6411364924547814,
+          "a0/CVC-ClinicDB/unet_gate": 0.5954870774260398,
+          "a0/CVC-ClinicDB/sam_gate": 0.28008387811702967,
+          "a0/PolypGen-C6/source_normal": 0.6247182195524643,
+          "a0/PolypGen-C6/self_normal": 0.6531107214872133,
+          "a0/PolypGen-C6/external_normal": 0.6518184902061793,
+          "a0/PolypGen-C6/source_previous": 0.626117860566782,
+          "a0/PolypGen-C6/source_relative_gate": 0.6299057393546608,
+          "a0/PolypGen-C6/self_previous": 0.6338661606423557,
+          "a0/PolypGen-C6/self_relative_gate": 0.6317705337494386,
+          "a0/PolypGen-C6/external_previous": 0.6459321491949429,
+          "a0/PolypGen-C6/unet_relative_gate": 0.6406248071562555,
+          "a0/PolypGen-C6/sam_relative_gate": 0.6486553244370347,
+          "a0/PolypGen-C6/unet_gate": 0.5143594724570655,
+          "a0/PolypGen-C6/sam_gate": 0.4801407820142975,
+          "a0/normal_diagnostic/source_normal": 0.09986320109439124,
+          "a0/normal_diagnostic/self_normal": 0.18969448244414044,
+          "a0/normal_diagnostic/external_normal": 0.16552667578659372,
+          "a0/normal_diagnostic/source_previous": 0.2549019607843137,
+          "a0/normal_diagnostic/source_relative_gate": 0.23803009575923392,
+          "a0/normal_diagnostic/self_previous": 0.280437756497948,
+          "a0/normal_diagnostic/self_relative_gate": 0.22845417236662108,
+          "a0/normal_diagnostic/external_previous": 0.33059735522115824,
+          "a0/normal_diagnostic/unet_relative_gate": 0.2781577747378021,
+          "a0/normal_diagnostic/sam_relative_gate": 0.22024623803009577,
+          "a0/normal_diagnostic/unet_gate": 0.20656634746922026,
+          "a0/normal_diagnostic/sam_gate": 0.1714546283629731,
+          "a0/normal_holdout/source_normal": 0.1768281101614435,
+          "a0/normal_holdout/self_normal": 0.20474833808167142,
+          "a0/normal_holdout/external_normal": 0.2104463437796771,
+          "a0/normal_holdout/source_previous": 0.32155745489078824,
+          "a0/normal_holdout/source_relative_gate": 0.28850902184235516,
+          "a0/normal_holdout/self_previous": 0.30009496676163344,
+          "a0/normal_holdout/self_relative_gate": 0.22393162393162394,
+          "a0/normal_holdout/external_previous": 0.35156695156695156,
+          "a0/normal_holdout/unet_relative_gate": 0.24843304843304842,
+          "a0/normal_holdout/sam_relative_gate": 0.2883190883190883,
+          "a0/normal_holdout/unet_gate": 0.06286799620132953,
+          "a0/normal_holdout/sam_gate": 0.02507122507122507,
+          "a1/CVC-ClinicDB/source_normal": 0.6376371406665607,
+          "a1/CVC-ClinicDB/self_normal": 0.6687597172566939,
+          "a1/CVC-ClinicDB/external_normal": 0.6668719916690249,
+          "a1/CVC-ClinicDB/source_previous": 0.6629791546129141,
+          "a1/CVC-ClinicDB/source_relative_gate": 0.6575565341233721,
+          "a1/CVC-ClinicDB/self_previous": 0.681184681131936,
+          "a1/CVC-ClinicDB/self_relative_gate": 0.6794528206692667,
+          "a1/CVC-ClinicDB/external_previous": 0.6804102554410552,
+          "a1/CVC-ClinicDB/unet_relative_gate": 0.674822601900198,
+          "a1/CVC-ClinicDB/sam_relative_gate": 0.6791904266516485,
+          "a1/CVC-ClinicDB/unet_gate": 0.6709329723428444,
+          "a1/CVC-ClinicDB/sam_gate": 0.29688017318464355,
+          "a1/PolypGen-C6/source_normal": 0.626266152005304,
+          "a1/PolypGen-C6/self_normal": 0.6559973067999112,
+          "a1/PolypGen-C6/external_normal": 0.6539978290163686,
+          "a1/PolypGen-C6/source_previous": 0.6384419413408536,
+          "a1/PolypGen-C6/source_relative_gate": 0.6310417643167746,
+          "a1/PolypGen-C6/self_previous": 0.655402391043026,
+          "a1/PolypGen-C6/self_relative_gate": 0.6455137795119574,
+          "a1/PolypGen-C6/external_previous": 0.6590848713689907,
+          "a1/PolypGen-C6/unet_relative_gate": 0.6383359005505388,
+          "a1/PolypGen-C6/sam_relative_gate": 0.6627919304495057,
+          "a1/PolypGen-C6/unet_gate": 0.626491921685749,
+          "a1/PolypGen-C6/sam_gate": 0.47402930268171156,
+          "a1/normal_diagnostic/source_normal": 0.14272685818513453,
+          "a1/normal_diagnostic/self_normal": 0.3014135886912905,
+          "a1/normal_diagnostic/external_normal": 0.2549019607843137,
+          "a1/normal_diagnostic/source_previous": 0.3064295485636115,
+          "a1/normal_diagnostic/source_relative_gate": 0.20155038759689922,
+          "a1/normal_diagnostic/self_previous": 0.4860921112631099,
+          "a1/normal_diagnostic/self_relative_gate": 0.3702690378476972,
+          "a1/normal_diagnostic/external_previous": 0.43091655266757867,
+          "a1/normal_diagnostic/unet_relative_gate": 0.275421796625627,
+          "a1/normal_diagnostic/sam_relative_gate": 0.253077975376197,
+          "a1/normal_diagnostic/unet_gate": 0.3009575923392613,
+          "a1/normal_diagnostic/sam_gate": 0.2248062015503876,
+          "a1/normal_holdout/source_normal": 0.16695156695156696,
+          "a1/normal_holdout/self_normal": 0.22867996201329535,
+          "a1/normal_holdout/external_normal": 0.22773029439696107,
+          "a1/normal_holdout/source_previous": 0.3063627730294397,
+          "a1/normal_holdout/source_relative_gate": 0.1741690408357075,
+          "a1/normal_holdout/self_previous": 0.3479582146248813,
+          "a1/normal_holdout/self_relative_gate": 0.2533713200379867,
+          "a1/normal_holdout/external_previous": 0.34909781576448246,
+          "a1/normal_holdout/unet_relative_gate": 0.20816714150047483,
+          "a1/normal_holdout/sam_relative_gate": 0.27901234567901234,
+          "a1/normal_holdout/unet_gate": 0.09762583095916429,
+          "a1/normal_holdout/sam_gate": 0.02298195631528965,
+          "a0/CVC-ClinicDB/source_balanced": 0.631896670097009,
+          "a0/CVC-ClinicDB/external_balanced": 0.6517624190703747,
+          "a0/PolypGen-C6/source_balanced": 0.6549307789510667,
+          "a0/PolypGen-C6/external_balanced": 0.6625227853973311,
+          "a0/normal_diagnostic/source_balanced": 0.20018239854081168,
+          "a0/normal_diagnostic/external_balanced": 0.29457364341085274,
+          "a0/normal_holdout/source_balanced": 0.2406457739791073,
+          "a0/normal_holdout/external_balanced": 0.28205128205128205,
+          "a1/CVC-ClinicDB/source_balanced": 0.6613323806645003,
+          "a1/CVC-ClinicDB/external_balanced": 0.6773123532801691,
+          "a1/PolypGen-C6/source_balanced": 0.6465876150989172,
+          "a1/PolypGen-C6/external_balanced": 0.6526653735870214,
+          "a1/normal_diagnostic/source_balanced": 0.2872777017783858,
+          "a1/normal_diagnostic/external_balanced": 0.3807569539443684,
+          "a1/normal_holdout/source_balanced": 0.25679012345679014,
+          "a1/normal_holdout/external_balanced": 0.294017094017094
+        }
+      }
+    },
+    "source_projection": {
+      "source_file": "runs/real/source_projection/analysis.json",
+      "source_sha256": "cc5ec2101bf1978640e12cd34fcd08a00d3f9e45afe2fbdb0bd853f775eb5953",
+      "result": {
+        "scope": "posthoc_development_all_existing_cohorts_used_not_new_confirmation",
+        "primary": {
+          "a0/CVC-ClinicDB/projected_external_vs_source_relative_gate": {
+            "improvement": 0.0018905407046481697,
+            "ci95": [
+              -0.005774004481013836,
+              0.009718246946836448
+            ],
+            "corrected_ci": [
+              -0.008951419390850639,
+              0.012927629574598207
+            ],
+            "n_groups": 20,
+            "per_seed_improvement": {
+              "42": -0.0028076878375399164,
+              "43": 0.006426126664602107,
+              "44": 0.002053183286882319
+            },
+            "passed": false
+          },
+          "a0/CVC-ClinicDB/projected_external_vs_supported_source_ensemble": {
+            "improvement": 0.022780468102244728,
+            "ci95": [
+              0.010772680489478145,
+              0.03735413196956988
+            ],
+            "corrected_ci": [
+              0.006822906806871848,
+              0.04321377876313552
+            ],
+            "n_groups": 20,
+            "per_seed_improvement": {
+              "42": 0.021348721733363916,
+              "43": 0.03855587032701876,
+              "44": 0.008436812246351514
+            },
+            "passed": true
+          },
+          "a0/normal_holdout/projected_external_vs_source_relative_gate": {
+            "improvement": 0.02522463388642084,
+            "ci95": [
+              0.017435215595679194,
+              0.032481982880136706
+            ],
+            "corrected_ci": [
+              0.014180579266918202,
+              0.034952620044271424
+            ],
+            "n_groups": 10,
+            "per_seed_improvement": {
+              "42": 0.022233972754253185,
+              "43": 0.04532876885384155,
+              "44": 0.008111160051167788
+            },
+            "passed": true
+          },
+          "a0/normal_holdout/projected_external_vs_supported_source_ensemble": {
+            "improvement": -0.03652524593873119,
+            "ci95": [
+              -0.0476002809873584,
+              -0.026133350304797704
+            ],
+            "corrected_ci": [
+              -0.052302464683500416,
+              -0.022684386369426126
+            ],
+            "n_groups": 10,
+            "per_seed_improvement": {
+              "42": -0.016522037654760995,
+              "43": -0.0341488740966729,
+              "44": -0.05890482606475966
+            },
+            "passed": false
+          },
+          "a1/CVC-ClinicDB/projected_external_vs_source_relative_gate": {
+            "improvement": 0.0013976264538127416,
+            "ci95": [
+              -0.004945061296048118,
+              0.008158867023628379
+            ],
+            "corrected_ci": [
+              -0.007214332224819163,
+              0.010926165877412262
+            ],
+            "n_groups": 20,
+            "per_seed_improvement": {
+              "42": -0.002266517612369915,
+              "43": 0.006140577603870287,
+              "44": 0.0003188193699378533
+            },
+            "passed": false
+          },
+          "a1/CVC-ClinicDB/projected_external_vs_supported_source_ensemble": {
+            "improvement": 0.008970057569770543,
+            "ci95": [
+              0.0046296916674959405,
+              0.01391814686439953
+            ],
+            "corrected_ci": [
+              0.003038807537774107,
+              0.016088140729130923
+            ],
+            "n_groups": 20,
+            "per_seed_improvement": {
+              "42": 0.018112924541824706,
+              "43": 0.011143983568127198,
+              "44": -0.0023467354006402735
+            },
+            "passed": true
+          },
+          "a1/normal_holdout/projected_external_vs_source_relative_gate": {
+            "improvement": 0.014036698997150363,
+            "ci95": [
+              0.010494432422500786,
+              0.017659722025832963
+            ],
+            "corrected_ci": [
+              0.009210051382438042,
+              0.01909413624320194
+            ],
+            "n_groups": 10,
+            "per_seed_improvement": {
+              "42": 0.004079334637843683,
+              "43": 0.01870394439708642,
+              "44": 0.019326817956520987
+            },
+            "passed": true
+          },
+          "a1/normal_holdout/projected_external_vs_supported_source_ensemble": {
+            "improvement": -0.005479286940978353,
+            "ci95": [
+              -0.013031058249887302,
+              0.0021360815790690997
+            ],
+            "corrected_ci": [
+              -0.015963184047316174,
+              0.005058989901093361
+            ],
+            "n_groups": 10,
+            "per_seed_improvement": {
+              "42": -0.0007039467417918721,
+              "43": -0.010711311210887548,
+              "44": -0.005022602870255634
+            },
+            "passed": false
+          }
+        },
+        "primary_family_passed": false,
+        "group_means": {
+          "a0/CVC-ClinicDB/projected_external": 0.5976468430309078,
+          "a0/CVC-ClinicDB/source_relative_gate": 0.5957563023262595,
+          "a0/CVC-ClinicDB/supported_source_ensemble": 0.5748663749286628,
+          "a0/CVC-ClinicDB/image_supported_external": 0.6070750956615721,
+          "a0/normal_holdout/projected_external": 0.24883224411287272,
+          "a0/normal_holdout/source_relative_gate": 0.2740568779992936,
+          "a0/normal_holdout/supported_source_ensemble": 0.21230699817414156,
+          "a0/normal_holdout/image_supported_external": 0.25066854131528593,
+          "a0/PolypGen-C6/projected_external": 0.6351568480454399,
+          "a0/PolypGen-C6/source_relative_gate": 0.6299057393546609,
+          "a0/PolypGen-C6/supported_source_ensemble": 0.631187825976998,
+          "a0/PolypGen-C6/image_supported_external": 0.6403500458867657,
+          "a0/normal_diagnostic/projected_external": 0.22977142729108854,
+          "a0/normal_diagnostic/source_relative_gate": 0.2524562523806323,
+          "a0/normal_diagnostic/supported_source_ensemble": 0.17099541638259122,
+          "a0/normal_diagnostic/image_supported_external": 0.23391476776231768,
+          "a1/CVC-ClinicDB/projected_external": 0.6233204962504488,
+          "a1/CVC-ClinicDB/source_relative_gate": 0.6219228697966362,
+          "a1/CVC-ClinicDB/supported_source_ensemble": 0.6143504386806786,
+          "a1/CVC-ClinicDB/image_supported_external": 0.6347155905224727,
+          "a1/normal_holdout/projected_external": 0.15076492836956465,
+          "a1/normal_holdout/source_relative_gate": 0.16480162736671505,
+          "a1/normal_holdout/supported_source_ensemble": 0.14528564142858633,
+          "a1/normal_holdout/image_supported_external": 0.15273960679074647,
+          "a1/PolypGen-C6/projected_external": 0.6371547815570562,
+          "a1/PolypGen-C6/source_relative_gate": 0.6310417643167745,
+          "a1/PolypGen-C6/supported_source_ensemble": 0.6319986616797519,
+          "a1/PolypGen-C6/image_supported_external": 0.6408221192065288,
+          "a1/normal_diagnostic/projected_external": 0.1941193981121386,
+          "a1/normal_diagnostic/source_relative_gate": 0.20653965693288137,
+          "a1/normal_diagnostic/supported_source_ensemble": 0.17224110723808245,
+          "a1/normal_diagnostic/image_supported_external": 0.19709314794009292
+        },
+        "frame_means": {
+          "a0/CVC-ClinicDB/source_relative_gate": 0.6267416944291903,
+          "a0/CVC-ClinicDB/projected_external": 0.6283354512605308,
+          "a0/CVC-ClinicDB/image_supported_external": 0.6369846672876649,
+          "a0/CVC-ClinicDB/supported_source_ensemble": 0.6066148179343515,
+          "a0/PolypGen-C6/source_relative_gate": 0.6299057393546608,
+          "a0/PolypGen-C6/projected_external": 0.6351568480454399,
+          "a0/PolypGen-C6/image_supported_external": 0.6403500458867656,
+          "a0/PolypGen-C6/supported_source_ensemble": 0.631187825976998,
+          "a0/normal_holdout/source_relative_gate": 0.28850902184235516,
+          "a0/normal_holdout/projected_external": 0.26191832858499525,
+          "a0/normal_holdout/image_supported_external": 0.26457739791073126,
+          "a0/normal_holdout/supported_source_ensemble": 0.2222222222222222,
+          "a0/normal_diagnostic/source_relative_gate": 0.23803009575923392,
+          "a0/normal_diagnostic/projected_external": 0.2165982672138623,
+          "a0/normal_diagnostic/image_supported_external": 0.22024623803009577,
+          "a0/normal_diagnostic/supported_source_ensemble": 0.15914272685818515,
+          "a1/CVC-ClinicDB/source_relative_gate": 0.6575565341233721,
+          "a1/CVC-ClinicDB/projected_external": 0.6588414982110291,
+          "a1/CVC-ClinicDB/image_supported_external": 0.6675227384169444,
+          "a1/CVC-ClinicDB/supported_source_ensemble": 0.651488066209076,
+          "a1/PolypGen-C6/source_relative_gate": 0.6310417643167746,
+          "a1/PolypGen-C6/projected_external": 0.6371547815570562,
+          "a1/PolypGen-C6/image_supported_external": 0.6408221192065288,
+          "a1/PolypGen-C6/supported_source_ensemble": 0.6319986616797519,
+          "a1/normal_holdout/source_relative_gate": 0.1741690408357075,
+          "a1/normal_holdout/projected_external": 0.15954415954415954,
+          "a1/normal_holdout/image_supported_external": 0.16163342830009497,
+          "a1/normal_holdout/supported_source_ensemble": 0.15175688509021842,
+          "a1/normal_diagnostic/source_relative_gate": 0.20155038759689922,
+          "a1/normal_diagnostic/projected_external": 0.18923848609211127,
+          "a1/normal_diagnostic/image_supported_external": 0.19197446420428638,
+          "a1/normal_diagnostic/supported_source_ensemble": 0.16963064295485636
+        }
+      }
+    },
+    "gradient_conflict": {
+      "source_file": "runs/real/gradient_conflict/analysis.json",
+      "source_sha256": "5283fdde4fd9d2ea313c600d5877179035b03131ffa6db642b3408c98aca5eeb",
+      "result": {
+        "scope": "controlled_development_no_independent_confirmation_keep_all_old_failures",
+        "primary": {
+          "a0/CVC-ClinicDB/projected_gradient_gate_vs_source_gradient_gate": {
+            "improvement": 0.0051971408628882195,
+            "ci95": [
+              0.0005894004273681811,
+              0.010282364168118863
+            ],
+            "corrected_ci": [
+              -0.0015782471270344098,
+              0.012888249396694812
+            ],
+            "per_seed_improvement": {
+              "42": 0.0016649149125982185,
+              "43": 0.012291136402589303,
+              "44": 0.0016353712734771338
+            },
+            "passed": false
+          },
+          "a0/CVC-ClinicDB/projected_gradient_gate_vs_source_relative_gate": {
+            "improvement": 0.014140672661960244,
+            "ci95": [
+              0.0015203925483104953,
+              0.02764572850573301
+            ],
+            "corrected_ci": [
+              -0.003713264728643719,
+              0.0342185223265739
+            ],
+            "per_seed_improvement": {
+              "42": 0.009444236158562292,
+              "43": 0.014579728308641871,
+              "44": 0.018398053518676565
+            },
+            "passed": false
+          },
+          "a0/CVC-ClinicDB/projected_gradient_gate_vs_supported_source_ensemble": {
+            "improvement": 0.0350306000595568,
+            "ci95": [
+              0.021327910122867933,
+              0.05115358697960328
+            ],
+            "corrected_ci": [
+              0.016429400618313134,
+              0.05908878012401826
+            ],
+            "per_seed_improvement": {
+              "42": 0.033600645729466125,
+              "43": 0.04670947197105853,
+              "44": 0.024781682478145762
+            },
+            "passed": true
+          },
+          "a0/normal_holdout/projected_gradient_gate_vs_source_gradient_gate": {
+            "improvement": -0.007169213752712162,
+            "ci95": [
+              -0.014201278605027111,
+              -0.0005663065249193774
+            ],
+            "corrected_ci": [
+              -0.0175714287274257,
+              0.002001293066686321
+            ],
+            "per_seed_improvement": {
+              "42": 0.00958300068415026,
+              "43": -0.018218004973226752,
+              "44": -0.012872636969059997
+            },
+            "passed": false
+          },
+          "a0/normal_holdout/projected_gradient_gate_vs_source_relative_gate": {
+            "improvement": 0.033435852660999535,
+            "ci95": [
+              0.009989352806779319,
+              0.05767951213967462
+            ],
+            "corrected_ci": [
+              0.0003609898245152914,
+              0.06969214831125976
+            ],
+            "per_seed_improvement": {
+              "42": 0.07420519802430435,
+              "43": 0.032579776336017316,
+              "44": -0.0064774163773230736
+            },
+            "passed": true
+          },
+          "a0/normal_holdout/projected_gradient_gate_vs_supported_source_ensemble": {
+            "improvement": -0.028314027164152496,
+            "ci95": [
+              -0.04391490515185791,
+              -0.014701817752480775
+            ],
+            "corrected_ci": [
+              -0.051746965439444556,
+              -0.00858842746671984
+            ],
+            "per_seed_improvement": {
+              "42": 0.035449187615290166,
+              "43": -0.046897866614497144,
+              "44": -0.07349340249325051
+            },
+            "passed": false
+          },
+          "a1/CVC-ClinicDB/projected_gradient_gate_vs_source_gradient_gate": {
+            "improvement": 0.004431630701814455,
+            "ci95": [
+              -0.000557398335574061,
+              0.01011447945187104
+            ],
+            "corrected_ci": [
+              -0.002449027698490076,
+              0.01302818795883632
+            ],
+            "per_seed_improvement": {
+              "42": 0.0,
+              "43": 0.0,
+              "44": 0.013294892105443365
+            },
+            "passed": false
+          },
+          "a1/CVC-ClinicDB/projected_gradient_gate_vs_source_relative_gate": {
+            "improvement": 0.003878273432527446,
+            "ci95": [
+              -0.001314287027773734,
+              0.009344791679477578
+            ],
+            "corrected_ci": [
+              -0.0035485295387235618,
+              0.011810992454311869
+            ],
+            "per_seed_improvement": {
+              "42": 0.0,
+              "43": 0.0,
+              "44": 0.011634820297582338
+            },
+            "passed": false
+          },
+          "a1/CVC-ClinicDB/projected_gradient_gate_vs_supported_source_ensemble": {
+            "improvement": 0.011450704548485246,
+            "ci95": [
+              0.006137222289398684,
+              0.01730677730797116
+            ],
+            "corrected_ci": [
+              0.004119284038072641,
+              0.02031293665875013
+            ],
+            "per_seed_improvement": {
+              "42": 0.02037944215419462,
+              "43": 0.00500340596425691,
+              "44": 0.008969265527004212
+            },
+            "passed": true
+          },
+          "a1/normal_holdout/projected_gradient_gate_vs_source_gradient_gate": {
+            "improvement": -0.00830364565377049,
+            "ci95": [
+              -0.014773345504117047,
+              -0.002185531077282911
+            ],
+            "corrected_ci": [
+              -0.017929846180017212,
+              0.00032463994995465443
+            ],
+            "per_seed_improvement": {
+              "42": 0.0,
+              "43": 0.0,
+              "44": -0.024910936961311466
+            },
+            "passed": false
+          },
+          "a1/normal_holdout/projected_gradient_gate_vs_source_relative_gate": {
+            "improvement": -0.005159806875282914,
+            "ci95": [
+              -0.010219736051813503,
+              0.0001843970009391544
+            ],
+            "corrected_ci": [
+              -0.012215088121190317,
+              0.0025284163356199363
+            ],
+            "per_seed_improvement": {
+              "42": 0.0,
+              "43": 0.0,
+              "44": -0.015479420625848745
+            },
+            "passed": false
+          },
+          "a1/normal_holdout/projected_gradient_gate_vs_supported_source_ensemble": {
+            "improvement": -0.024675792813411625,
+            "ci95": [
+              -0.03618795891328899,
+              -0.013445345284345784
+            ],
+            "corrected_ci": [
+              -0.041146761742822946,
+              -0.008818736537514289
+            ],
+            "per_seed_improvement": {
+              "42": -0.004783281379635555,
+              "43": -0.029415255607973968,
+              "44": -0.039828841452625365
+            },
+            "passed": false
+          }
+        },
+        "primary_family_passed": false,
+        "group_means": {
+          "a0/CVC-ClinicDB/image_supported_external": 0.6070750956615721,
+          "a0/CVC-ClinicDB/plain_gradient_gate": 0.6074197317534009,
+          "a0/CVC-ClinicDB/projected_external": 0.5976468430309078,
+          "a0/CVC-ClinicDB/projected_gradient_gate": 0.6098969749882196,
+          "a0/CVC-ClinicDB/source_gradient_gate": 0.6046998341253312,
+          "a0/CVC-ClinicDB/source_relative_gate": 0.5957563023262595,
+          "a0/CVC-ClinicDB/supported_source_ensemble": 0.5748663749286628,
+          "a0/normal_holdout/image_supported_external": 0.25066854131528593,
+          "a0/normal_holdout/plain_gradient_gate": 0.2674676482210433,
+          "a0/normal_holdout/projected_external": 0.24883224411287272,
+          "a0/normal_holdout/projected_gradient_gate": 0.24062102533829408,
+          "a0/normal_holdout/source_gradient_gate": 0.2334518115855819,
+          "a0/normal_holdout/source_relative_gate": 0.2740568779992936,
+          "a0/normal_holdout/supported_source_ensemble": 0.21230699817414156,
+          "a0/PolypGen-C6/image_supported_external": 0.6403500458867657,
+          "a0/PolypGen-C6/plain_gradient_gate": 0.6426011380787272,
+          "a0/PolypGen-C6/projected_external": 0.6351568480454399,
+          "a0/PolypGen-C6/projected_gradient_gate": 0.6436158760281449,
+          "a0/PolypGen-C6/source_gradient_gate": 0.6399988178401889,
+          "a0/PolypGen-C6/source_relative_gate": 0.6299057393546609,
+          "a0/PolypGen-C6/supported_source_ensemble": 0.631187825976998,
+          "a0/normal_diagnostic/image_supported_external": 0.23391476776231768,
+          "a0/normal_diagnostic/plain_gradient_gate": 0.23523951961641013,
+          "a0/normal_diagnostic/projected_external": 0.22977142729108854,
+          "a0/normal_diagnostic/projected_gradient_gate": 0.22505577481379055,
+          "a0/normal_diagnostic/source_gradient_gate": 0.19417661330849476,
+          "a0/normal_diagnostic/source_relative_gate": 0.2524562523806323,
+          "a0/normal_diagnostic/supported_source_ensemble": 0.17099541638259122,
+          "a1/CVC-ClinicDB/image_supported_external": 0.6347155905224727,
+          "a1/CVC-ClinicDB/plain_gradient_gate": 0.6266261240613402,
+          "a1/CVC-ClinicDB/projected_external": 0.6233204962504488,
+          "a1/CVC-ClinicDB/projected_gradient_gate": 0.6258011432291638,
+          "a1/CVC-ClinicDB/source_gradient_gate": 0.6213695125273492,
+          "a1/CVC-ClinicDB/source_relative_gate": 0.6219228697966362,
+          "a1/CVC-ClinicDB/supported_source_ensemble": 0.6143504386806786,
+          "a1/normal_holdout/image_supported_external": 0.15273960679074647,
+          "a1/normal_holdout/plain_gradient_gate": 0.17789067752092363,
+          "a1/normal_holdout/projected_external": 0.15076492836956465,
+          "a1/normal_holdout/projected_gradient_gate": 0.16996143424199797,
+          "a1/normal_holdout/source_gradient_gate": 0.16165778858822746,
+          "a1/normal_holdout/source_relative_gate": 0.16480162736671505,
+          "a1/normal_holdout/supported_source_ensemble": 0.14528564142858633,
+          "a1/PolypGen-C6/image_supported_external": 0.6408221192065288,
+          "a1/PolypGen-C6/plain_gradient_gate": 0.6344855439553584,
+          "a1/PolypGen-C6/projected_external": 0.6371547815570562,
+          "a1/PolypGen-C6/projected_gradient_gate": 0.6358612892599645,
+          "a1/PolypGen-C6/source_gradient_gate": 0.6332121801266993,
+          "a1/PolypGen-C6/source_relative_gate": 0.6310417643167745,
+          "a1/PolypGen-C6/supported_source_ensemble": 0.6319986616797519,
+          "a1/normal_diagnostic/image_supported_external": 0.19709314794009292,
+          "a1/normal_diagnostic/plain_gradient_gate": 0.22956937362563495,
+          "a1/normal_diagnostic/projected_external": 0.1941193981121386,
+          "a1/normal_diagnostic/projected_gradient_gate": 0.22262736982942666,
+          "a1/normal_diagnostic/source_gradient_gate": 0.20030464091262637,
+          "a1/normal_diagnostic/source_relative_gate": 0.20653965693288137,
+          "a1/normal_diagnostic/supported_source_ensemble": 0.17224110723808245
+        },
+        "frame_means": {
+          "a0/CVC-ClinicDB/source_relative_gate": 0.6267416944291903,
+          "a0/CVC-ClinicDB/projected_external": 0.6283354512605308,
+          "a0/CVC-ClinicDB/image_supported_external": 0.6369846672876649,
+          "a0/CVC-ClinicDB/supported_source_ensemble": 0.6066148179343515,
+          "a0/PolypGen-C6/source_relative_gate": 0.6299057393546608,
+          "a0/PolypGen-C6/projected_external": 0.6351568480454399,
+          "a0/PolypGen-C6/image_supported_external": 0.6403500458867656,
+          "a0/PolypGen-C6/supported_source_ensemble": 0.631187825976998,
+          "a0/normal_holdout/source_relative_gate": 0.28850902184235516,
+          "a0/normal_holdout/projected_external": 0.26191832858499525,
+          "a0/normal_holdout/image_supported_external": 0.26457739791073126,
+          "a0/normal_holdout/supported_source_ensemble": 0.2222222222222222,
+          "a0/normal_diagnostic/source_relative_gate": 0.23803009575923392,
+          "a0/normal_diagnostic/projected_external": 0.2165982672138623,
+          "a0/normal_diagnostic/image_supported_external": 0.22024623803009577,
+          "a0/normal_diagnostic/supported_source_ensemble": 0.15914272685818515,
+          "a1/CVC-ClinicDB/source_relative_gate": 0.6575565341233721,
+          "a1/CVC-ClinicDB/projected_external": 0.6588414982110291,
+          "a1/CVC-ClinicDB/image_supported_external": 0.6675227384169444,
+          "a1/CVC-ClinicDB/supported_source_ensemble": 0.651488066209076,
+          "a1/PolypGen-C6/source_relative_gate": 0.6310417643167746,
+          "a1/PolypGen-C6/projected_external": 0.6371547815570562,
+          "a1/PolypGen-C6/image_supported_external": 0.6408221192065288,
+          "a1/PolypGen-C6/supported_source_ensemble": 0.6319986616797519,
+          "a1/normal_holdout/source_relative_gate": 0.1741690408357075,
+          "a1/normal_holdout/projected_external": 0.15954415954415954,
+          "a1/normal_holdout/image_supported_external": 0.16163342830009497,
+          "a1/normal_holdout/supported_source_ensemble": 0.15175688509021842,
+          "a1/normal_diagnostic/source_relative_gate": 0.20155038759689922,
+          "a1/normal_diagnostic/projected_external": 0.18923848609211127,
+          "a1/normal_diagnostic/image_supported_external": 0.19197446420428638,
+          "a1/normal_diagnostic/supported_source_ensemble": 0.16963064295485636,
+          "a0/CVC-ClinicDB/source_gradient_gate": 0.6370614247224737,
+          "a0/CVC-ClinicDB/plain_gradient_gate": 0.6392706595083144,
+          "a0/CVC-ClinicDB/projected_gradient_gate": 0.6428093159797623,
+          "a1/CVC-ClinicDB/source_gradient_gate": 0.6585501043157249,
+          "a1/CVC-ClinicDB/plain_gradient_gate": 0.6628306418394028,
+          "a1/CVC-ClinicDB/projected_gradient_gate": 0.6621627337181145,
+          "a0/PolypGen-C6/source_gradient_gate": 0.6399988178401889,
+          "a0/PolypGen-C6/plain_gradient_gate": 0.6426011380787272,
+          "a0/PolypGen-C6/projected_gradient_gate": 0.6436158760281449,
+          "a1/PolypGen-C6/source_gradient_gate": 0.6332121801266994,
+          "a1/PolypGen-C6/plain_gradient_gate": 0.6344855439553585,
+          "a1/PolypGen-C6/projected_gradient_gate": 0.6358612892599647,
+          "a0/normal_holdout/source_gradient_gate": 0.24254510921177588,
+          "a0/normal_holdout/plain_gradient_gate": 0.27996201329534665,
+          "a0/normal_holdout/projected_gradient_gate": 0.24957264957264957,
+          "a1/normal_holdout/source_gradient_gate": 0.1728395061728395,
+          "a1/normal_holdout/plain_gradient_gate": 0.18708452041785376,
+          "a1/normal_holdout/projected_gradient_gate": 0.1789173789173789,
+          "a0/normal_diagnostic/source_gradient_gate": 0.18194254445964433,
+          "a0/normal_diagnostic/plain_gradient_gate": 0.22298221614227087,
+          "a0/normal_diagnostic/projected_gradient_gate": 0.213406292749658,
+          "a1/normal_diagnostic/source_gradient_gate": 0.19516643866849065,
+          "a1/normal_diagnostic/plain_gradient_gate": 0.22389420884632924,
+          "a1/normal_diagnostic/projected_gradient_gate": 0.2165982672138623
+        }
+      }
+    }
+  }
+}

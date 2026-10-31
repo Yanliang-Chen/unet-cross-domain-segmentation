@@ -1,0 +1,49 @@
+segmentation_manifest: runs/real/external_teacher/adaptation.json
+segmentation_arm: external
+negative_split: runs/real/negative_context/split.json
+auxiliary_split: runs/real/balanced_context/split.json
+source_data: data/polyp_png
+source_counts:
+  original_positive: 800
+  auxiliary_positive: 397
+  negative: 1789
+  positive_calibration: 200
+  negative_validation: 731
+evaluation_counts:
+  CVC-ClinicDB: 427
+  PolypGen-C6: 88
+  normal_holdout: 1755
+  normal_diagnostic: 731
+sam_checkpoint: data/pretrained/sam_vit_b_01ec64.pth
+sam_model: vit_b
+sam_batch_size: 4
+feature_heads:
+- unet
+- sam
+max_iterations: 250
+lbfgs_tolerance_grad: 1.0e-06
+l2_half_squared_norm_weight: 0.01
+source_class_weights:
+  original_positive: 0.25
+  auxiliary_positive: 0.25
+  negative: 0.5
+positive_rejection_budget: 0.005
+augmentations:
+- a0
+- a1
+seeds:
+- 42
+- 43
+- 44
+version: 1
+status: retained_relative_presence_development_candidate
+scope: existing_frozen_development_cohort_not_independent_confirmation
+head_manifest: runs/real/presence_clean/gates.json
+baseline_csv: runs/real/negative_context/per_image.csv
+baseline_csv_sha256: 213c1e74437070372c3561f3d155336bb0d03d770f2ceacc991212e995ff92b5
+segmentation_manifest_sha256: a9ef5a16b78442ebe5b3e6fa4b50f3bed89ee628814a2d7311a092af84c1ca2b
+feature_dimension: 512
+cache_feature_dimension: 1024
+feature_transform: L2_normalized_foreground_minus_background_and_foreground_minus_global_mean
+calibration_scope: empirical_source_only_no_target_or_patient_guarantee
+frozen_comparator_csv: runs/real/negative_context/per_image.csv

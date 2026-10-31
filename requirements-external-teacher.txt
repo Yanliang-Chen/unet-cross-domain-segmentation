@@ -1,0 +1,5 @@
+# Optional frozen SAM teacher; existing torch/numpy/Pillow/PyYAML remain in requirements.txt.
+# Windows CUDA 12.8: install torchvision from https://download.pytorch.org/whl/cu128
+torchvision==0.26.0
+segment-anything==1.0
+scipy==1.17.1

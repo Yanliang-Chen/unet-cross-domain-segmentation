@@ -1,0 +1,18 @@
+version: 1
+status: development_comparison_of_frozen_external_knowledge_and_distillation
+adaptation_protocol: external_teacher_protocol.yaml
+primary_methods: [external, self, control]
+primary_comparisons: [external_ensemble_minus_control_ensemble, external_ensemble_minus_self_ensemble]
+source_and_student_input: 256
+prediction_threshold: 0.5
+ensemble_weights: [0.5, 0.5]
+domains: [CVC-ClinicDB, PolypGen-C1, PolypGen-C2, PolypGen-C3, PolypGen-C4, PolypGen-C5, PolypGen-C6]
+additional_reference_domain: CVC-ClinicDB
+additional_references: [frozen_SAM_source_prompted, source_SAM_probability_mean]
+reference_selection: maximum_source_prediction_Dice_never_ground_truth
+reference_resources: frozen_SAM_ViT_B_1024_encoder_and_native_probability_output
+statistical_unit_CVC: original_20_video_groups
+bootstrap_replicates: 10000
+bootstrap_seed: 20261031
+forbidden_domain: FAR-POLYP-SEG
+decision: retain_all_seeds_report_all_methods_do_not_replace_primary_with_reference_result

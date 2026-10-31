@@ -1,0 +1,7 @@
+# Protocol SHA-256 values identify exact bytes, including original line endings.
+/protocol.yaml -text whitespace=cr-at-eol
+/polypgen_source_control_protocol.yaml -text whitespace=cr-at-eol
+/validated_baseline_protocol.yaml -text whitespace=cr-at-eol
+/external_teacher_protocol.yaml -text whitespace=cr-at-eol
+/external_teacher_evaluation_protocol.yaml -text whitespace=cr-at-eol
+/far_confirmatory_protocol.yaml -text whitespace=cr-at-eol

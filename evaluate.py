@@ -19,8 +19,8 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--checkpoint")
     group.add_argument("--selection", help="JSON created by select_model.py")
-    parser.add_argument("--method", choices=["source", "stability", "confidence"],
-                        default="stability", help="Method to read from --selection")
+    parser.add_argument("--method", choices=["source"],
+                        default="source", help="Method to read from --selection")
     parser.add_argument("--data-dir")
     parser.add_argument("--split", choices=["source_val", "target_test"], default="target_test")
     parser.add_argument("--output", help="Optional JSON report path")
