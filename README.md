@@ -1,254 +1,72 @@
-# Robust Cross-Domain Biomedical Image Segmentation with U-Net and Label-Free Model Selection
+# 跨域息肉图像分割：无标签选模与完整流程评估
 
-A small, reproducible research starting point for **binary polyp segmentation**. Train a standard U-Net on labeled Kvasir-SEG images, use **unlabeled CVC-ClinicDB images** to choose one candidate checkpoint, and only then evaluate on held-out CVC-ClinicDB masks.
+项目研究目标域无分割标签时，适应、选模和预测拒绝的完整流程能否优于强源域基线。当前**尚未证明完整 UDA 方法在 A0/A1 下同时改善分割与正常图误报**。
 
-The proposed full experiment, including how the segmentation task relates to Xiong et al.'s classification datasets, is in [实验.md](实验.md). It distinguishes planned analyses from features already implemented.
+## 项目文档
 
-For the current status and cross-machine handoff, start with [每日进度.md](每日进度.md).
-The completed six-run real-data results are in [results/2026-10-26-real-polyp.md](results/2026-10-26-real-polyp.md).
-The failure analysis, guarded selection rule, and exploratory CVC-ColonDB/ETIS evaluation are in [results/2026-10-26-followup.md](results/2026-10-26-followup.md).
-Three literature-inspired training comparisons and their paired results are in [results/2026-10-26-literature-trials.md](results/2026-10-26-literature-trials.md).
-The exploratory foreground-consistency selection and source/CMR ensemble based on two newer papers are in [results/2026-10-31-paper-selection.md](results/2026-10-31-paper-selection.md).
+- [项目总览与实验设计](项目总览与实验设计.md)：题目、研究目标、数据角色、实验设计、结果、实现状态、剩余任务和参考文献。
+- [失败方法记录](失败方法记录.md)：18 类失败或退役尝试、主要失败结果及原因分析。
+- [每日进度](每日进度.md)：本轮完成情况和下次继续的位置。
+- [关键证据摘要](evidence/key_results.json)：冻结结果和原输出 SHA-256；查看结果无需重新训练。
 
-## Research question
+## 保留的结果
 
-Does selecting a U-Net checkpoint from unlabeled target images improve held-out target Dice compared with choosing the checkpoint with the best **source validation Dice**? Here the unsupervised score measures prediction stability under horizontal flip and mild brightness change. Source validation Dice restricts the candidate pool to within 0.03 of the best source candidate. This is a deliberately simple baseline, **not** an implementation of Xiong et al.'s two-level ensemble/reference method and **not** a validated estimator of segmentation quality. Stable empty predictions remain a risk. Run the source-only baseline and inspect the predictions before claiming an improvement.
-
-Xiong et al., *Towards Practical Algorithm Selection for Unsupervised Domain Adaptation in Medical Imaging* (2026), use ADNI/AIBL MRI and chest X-ray **classification** datasets. They identify segmentation as future work. Those datasets do not directly supply the pixel masks this project needs. This repository borrows the label-free selection **problem framing** and studies it on paired segmentation data instead.
-
-## Data and protocol
-
-- **Labeled source:** [Kvasir-SEG](https://datasets.simula.no/kvasir-seg/), 1,000 endoscopy image/mask pairs; research/education use and original paper citation required.
-- **Unlabeled selection / held-out target:** [CVC-ClinicDB](https://pages.cvc.uab.es/CVC-Colon/index.php/databases/), 612 frames and corresponding polyp masks. Its frames come from multiple videos: use video/sequence IDs for splitting when possible.
-- Source `source_train`: model fitting; source `source_val`: source baseline and guardrail.
-- Target `target_select/images`: checkpoint scoring only; no masks staged here.
-- Target `target_test/images+masks`: final evaluation only. **Never use test Dice to revise the selection rule, thresholds or architecture** for the same report.
-
-Both source and target images are resized to 256 x 256 for this baseline. Masks use nearest-neighbor resize and threshold >127 (especially relevant for JPEG masks). This square resize distorts aspect ratio; use a single consistent preprocessing policy for comparison and report this limitation. Metrics are per-image mean Dice and IoU, thresholding predictions at 0.5. Dataset access terms must be followed; images, masks, and checkpoints are ignored by Git.
-
-### Expected raw layout
-
-Download/extract the datasets yourself into `data/raw/`:
-
-```text
-data/raw/kvasir-seg/images/<matching-stem>.jpg
-data/raw/kvasir-seg/masks/<matching-stem>.jpg
-data/raw/cvc-clinicdb/Original/<matching-stem>.tif
-data/raw/cvc-clinicdb/Ground Truth/<matching-stem>.tif
-data/raw/cvc-clinicdb/metadata.csv  # optional: frame_id,sequence_id
-```
-
-CVC-ClinicDB can also use `images/` and `masks/` folder names. Its metadata CSV may instead have `sample_id,group_id`. The script does **not** download or redistribute medical images.
-
-### Environment and machine roles
-
-Run training and evaluation on the Windows NVIDIA machine. Use Python 3.10-3.12
-and a separate local environment. On Windows PowerShell:
-
-```powershell
-./scripts/setup_windows.ps1
-# If PowerShell script execution is disabled, use the commands in the script manually.
-.\.venv\Scripts\python.exe -m scripts.check_device
-```
-
-The Mac is for code and document editing plus Git synchronization only. Do not run
-model training or evaluation there. Keep datasets, checkpoints, and detailed run
-outputs on Windows; sync code and small non-private summaries through Git. Never
-commit medical images or model weights. The default `--device auto` uses CUDA when
-available, and `amp_cuda` only activates mixed precision on CUDA.
-
-### Prepare real datasets
-
-For video-aware target splitting, supply a CSV mapping every target filename stem to a video/sequence ID:
-
-```csv
-sample_id,group_id
-1,video_01
-2,video_01
-26,video_02
-```
-
-Or use `frame_id,sequence_id` columns from a dataset distribution, after checking that IDs match image filenames. Then run:
-
-```bash
-python -m scripts.prepare_polyp_data --source data/raw/kvasir-seg --target data/raw/cvc-clinicdb --target-groups-csv data/raw/cvc-clinicdb/metadata.csv --require-target-groups
-```
-
-If source patient identifiers are available, also pass `--source-groups-csv <CSV>` using the same `sample_id,group_id` format. If you lack reliable target sequence identifiers, omit both `--target-groups-csv` and `--require-target-groups` for an **exploratory** image-level split only; adjacent video frames may appear in both target partitions and overstate generalization. Never infer video IDs from consecutive filenames without source documentation.
-
-The preparation script checks image/mask pairing, dimensions and nonempty masks, rejects exact duplicate images crossing splits, and stages output atomically. It writes `split_manifest.csv` with split, sample ID, group ID and image SHA-256. It refuses to overwrite populated output. By default: 80/20 source train/validation, 30/70 target selection/test (with group fractions approximate). Keep the seed and split manifest fixed for the study.
-
-### Synthetic installation check
-
-The generated images are geometric shapes, **never medical evaluation data**. After installing dependencies:
-
-```bash
-python -m scripts.make_demo_data
-python train.py --config config.yaml --data-dir data/demo --run-dir runs/demo_unet --epochs 2
-python select_model.py --runs runs/demo_unet --target-images data/demo/target_select/images --output runs/demo_selection.json
-python evaluate.py --selection runs/demo_selection.json --data-dir data/demo --split target_test --final-evaluation
-```
-
-### Frozen real-data experiment
-
-On the Windows data machine, use the audited PNG staging directory `data/polyp_png`.
-The TIFF staging directory is not readable by the current Pillow installation. Before
-training, validate the staged files and print the manifest hash:
-
-```bash
-python -m scripts.check_protocol --show-unlocked-hash
-```
-
-Put the printed SHA-256 in `protocol.yaml` under `split_manifest_sha256`, commit the
-protocol, then run `python -m scripts.check_protocol` again. This checks counts,
-sequence isolation, image/mask IDs, every staged image hash and the absence of
-`target_select/masks`. The hash cannot be filled on a machine without the private
-dataset. Keep the manifest and all medical data out of Git.
-
-The matrix contains A0 (horizontal/vertical flips) and A1 (the same flips plus mild
-brightness, contrast and RGB channel gains), each with seeds 42, 43 and 44. Each run
-has 30 epochs. Run one pilot cell first to check memory and timing, then the matrix:
-
-```bash
-python -m scripts.run_matrix --dry-run --device cuda
-python -m scripts.run_matrix --only a0_seed42 --device cuda
-python -m scripts.run_matrix --device cuda
-```
-
-The runner safely resumes an interrupted run from `latest.pt` and skips cells that
-already have a selection file. It saves resolved configs, environment metadata,
-per-epoch checkpoints, source metrics and one target image-only selection file per
-run. The source, stability and entropy choices are fixed within each run's candidate
-pool; the source Dice guardrail is 0.03. Mean foreground area and empty-prediction
-fraction diagnose trivial masks. No target-test labels are read in this stage.
-
-After all six training and selection files exist and the protocol is frozen, run:
-
-```bash
-python -m scripts.final_analysis --device cuda
-python -m scripts.posthoc_diagnostics
-```
-
-This explicitly unlocks final target-test evaluation. It checks the six selection
-files and their protocol/data hashes before reading target-test labels, then reports
-per-image Dice, IoU, Precision and Recall, the paired stability-minus-source Dice
-difference, video-sequence bootstrap intervals, seed summaries and a **post-hoc**
-Oracle upper bound. Repeating the command with the same frozen inputs resumes an
-interrupted final analysis. It does not revise the selection rule based on test results.
-
-### Exploratory guarded-selection follow-up
-
-The follow-up rule was designed after reviewing the original CVC-ClinicDB test, so
-its original-test result is exploratory. `followup_protocol.yaml` locks a stricter
-source Dice tolerance, an empty-prediction limit, the six selections, and the local
-external archive. On the Windows data machine, with the original checkpoints and
-the extracted PraNet-style `data/TestDataset/TestDataset/` directory present:
-
-```powershell
-.\.venv\Scripts\python.exe -m scripts.select_guarded
-.\.venv\Scripts\python.exe -m scripts.evaluate_external_followup --device cuda
-```
-
-The selector reads only source validation and unlabeled target-selection data.
-The evaluator checks frozen hashes before reading external masks, then writes
-per-image output under the Git-ignored `runs/real/followup/external/` directory.
-Its summary includes counts of repeated external images and differing mask files.
-See the follow-up report for results and interpretation.
-
-### Exploratory multiscale U-Net follow-up
-
-`multiscale_protocol.yaml` records a CaraNet-inspired training comparison made after
-viewing all three earlier target datasets. It keeps the U-Net, source split, loss,
-optimizer, 30 epochs, three seeds, and A1 color/flip augmentation, but trains at
-352 pixels with one of three batch scales (0.75, 1.0, 1.25). The source-validation
-best checkpoint is compared with the same seed's original A1 source checkpoint.
-On Windows with the original data and checkpoints:
-
-```powershell
-foreach ($s in 42,43,44) {
-  .\.venv\Scripts\python.exe train.py --config multiscale_config.yaml --protocol multiscale_protocol.yaml --run-dir "runs/real/multiscale/a2_seed$s" --seed $s --augmentation a2 --device cuda
-}
-.\.venv\Scripts\python.exe -m scripts.evaluate_multiscale --device cuda
-```
-
-Both models are scored against each original-resolution mask so their different
-input sizes do not change the metric raster. This is an exploratory comparison;
-the earlier CVC-ClinicDB, CVC-ColonDB, and ETIS outcomes were already known when
-the new method was chosen.
-
-### Exploratory Tversky-loss follow-up
-
-`tversky_protocol.yaml` records a second, separate comparison after the multiscale
-result. It restores the original A1 training setup at 256 pixels and changes only
-the loss from BCE+Dice to BCE+Tversky, weighting missed foreground more strongly
-than false foreground. The three source-validation-best checkpoints are compared
-with the original A1 models using the same native-mask evaluation:
-
-```powershell
-foreach ($s in 42,43,44) {
-  .\.venv\Scripts\python.exe train.py --config tversky_config.yaml --protocol tversky_protocol.yaml --run-dir "runs/real/tversky/a1_seed$s" --seed $s --augmentation a1 --device cuda
-}
-.\.venv\Scripts\python.exe -m scripts.evaluate_tversky --device cuda
-```
-
-### Exploratory zoom-out follow-up
-
-`zoomout_protocol.yaml` records a final focused scale-distribution trial. The
-original source-training mask median occupies 11.84% of a 256-pixel image, versus
-3.62% on CVC-ColonDB and 1.98% on ETIS. Whole-image multiscale resizing leaves
-the foreground-area ratio nearly unchanged. This trial keeps the original A1
-256-pixel setup and applies paired zoom-out within the fixed canvas using factors
-0.5, 0.7, 0.9, or 1.0; image borders use replicated pixels and mask borders zero.
-The zoom ranges draw on published polyp-augmentation studies, while this exact
-implementation is an exploratory adaptation for our data.
-
-```powershell
-foreach ($s in 42,43,44) {
-  .\.venv\Scripts\python.exe train.py --config zoomout_config.yaml --protocol zoomout_protocol.yaml --run-dir "runs/real/zoomout/a3_seed$s" --seed $s --augmentation a3 --device cuda
-}
-.\.venv\Scripts\python.exe -m scripts.evaluate_zoomout --device cuda
-```
-
-### Exploratory foreground CMR selection and ensemble
-
-`paper_selection_protocol.yaml` applies [CMR-NHD](https://arxiv.org/pdf/2503.00450)
-to the 20 source-quality/empty-mask-gated checkpoints from the original six runs.
-It scores foreground agreement after one fixed Gaussian perturbation on the 185
-unlabeled target-selection images, then compares the CMR model with the source
-model and their equal-probability ensemble. The ensemble is a small adaptation
-of the strategy studied in [Xiong et al.](https://arxiv.org/pdf/2608.12035).
-On the Windows GPU machine:
-
-```powershell
-.\.venv\Scripts\python.exe -m scripts.select_paper_cmr --device cuda
-.\.venv\Scripts\python.exe -m scripts.evaluate_paper_selection --device cuda
-```
-
-The scripts save selections and native-mask paired results under the ignored
-`runs/real/paper_selection/` directory. A0 improves on all three previously
-examined target sets, while A1 does not; see the report for exact figures. All
-three target sets had been inspected before this method was chosen, so this is
-exploratory evidence rather than independent validation.
-
-## Files
-
-| File | Role |
+| 项目 | 当前证据 |
 | --- | --- |
-| `models/unet.py` | Standard U-Net with four downsamplings |
-| `datasets/segmentation.py` | Labeled image/mask loader; image-only target loader |
-| `scripts/prepare_polyp_data.py` | Deterministic source and target staging, optional group split |
-| `train.py` | Source training, all epoch checkpoints, validation log, resume |
-| `select_model.py` | Target image-only stability score + source validation gate |
-| `evaluate.py` | Separate target test evaluation |
-| `protocol.yaml` | Frozen design and split-manifest lock |
-| `scripts/check_protocol.py` | Validate the locked split and staged image hashes |
-| `scripts/run_matrix.py` | Six-run training and image-only selection runner |
-| `scripts/final_analysis.py` | Frozen final evaluation and paired report |
-| `scripts/posthoc_diagnostics.py` | Post-hoc candidate rank and failure diagnostics |
-| `scripts/make_demo_data.py` | Synthetic installation check |
+| 强源域继续训练与等权集成 | FAR 事前列出的次要比较：A0/A1 Dice +0.0152/+0.0107；UDA 集成的主比较仍失败 |
+| 冻结 SAM 外部教师学生 | ClinicDB 相对强单模型六种子均改善；A1 相对同损失 self 的独立收益未证实 |
+| 局部相对存在性头 | 相对同一学生，两增强均通过开发期误报下降/分割保留门槛；尚非完整 UDA 成功 |
 
-## Limitations
+全部种子保留。已反复使用的 ClinicDB、PolypGen 只能用于开发；FAR 已完成一次正式评价，不再作为后续调参资料。下一步重点是直接面向整图误报的目标和新的独立确认，详见总览。
 
-This first version is **source-only domain generalization plus unsupervised checkpoint selection**, not UDA training: the target images influence only the final checkpoint choice. Stability can prefer low quality masks. The target test must remain independent of selection; a group-aware split is essential for video frames. Source images may also have unknown patient overlap. Report uncertainty across seeds, inspect failure cases, and do not describe this research prototype as clinical software.
+## 清理后的代码
 
-Dataset references: Jha et al., *Kvasir-SEG: A Segmented Polyp Dataset*, MMM 2020; Bernal et al., *WM-DOVA maps for accurate polyp highlighting in colonoscopy*, Computerized Medical Imaging and Graphics 2015; Xiong et al., *Towards Practical Algorithm Selection for Unsupervised Domain Adaptation in Medical Imaging*, 2026.
+| 入口 | 用途 |
+| --- | --- |
+| `train.py`、`select_model.py`、`evaluate.py` | 原 A0/A1 U-Net、源验证最佳检查点与原 256 网格评价 |
+| `scripts/train_source_control.py` | 固定 BN、EMA 的强源域继续训练 |
+| `scripts/build_external_teacher.py`、`train_external_teacher.py` | 冻结教师缓存与匹配 external/self 训练 |
+| `scripts/evaluate_external_teacher.py`、`analyze_external_teacher.py` | 教师实验原尺寸指标与配对来源组分析 |
+| `scripts/build_presence_features.py` | 冻结来源角色、构建源图/评价图的 1,024 维中间特征缓存 |
+| `scripts/presence.py`、`analyze_presence.py` | 512 维局部相对特征头、评价与配对分析 |
+| `models/`、`datasets/`、`scripts/artifacts.py`、`checkpoints.py` | 保留网络、配对和共享辅助函数 |
+| `scripts/prepare_polyp_data.py`、`audit_real_data.py`、`check_protocol.py` | 数据准备与必要的划分保护 |
+
+失败方法的活动入口和过期说明已删除，结论集中保留在失败记录。原始权重、逐图结果、冻结清单以及清理前源码保留在本机 `runs/`，不随 Git 分发。冻结历史协议保留原字节，`.gitattributes` 防止 Git 换行转换破坏其 SHA-256；其中 `far_confirmatory_protocol.yaml` 和 `validated_baseline_protocol.yaml` 是证据身份记录，不是当前方法菜单。
+
+## Windows 环境与使用
+
+训练和评价使用 Windows CUDA，Mac 用于编辑代码与 Git。仓库不包含医学数据、预训练权重或实验缓存。现有脚本依赖本机的冻结来源清单，尚未实现从空目录一键恢复全部历史研究。
+
+已有虚拟环境无需重装；新 Windows 环境可运行：
+
+```powershell
+.\scripts\setup_windows.ps1
+.\.venv\Scripts\python.exe -m pip install -r requirements-external-teacher.txt
+```
+
+基础六组矩阵已经完成。以下仅显示入口，不会启动训练：
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.run_matrix --dry-run --device cuda
+```
+
+源验证选择器按单个 seed/augmentation 运行，输出必须是新文件：
+
+```powershell
+.\.venv\Scripts\python.exe select_model.py --runs runs/real/a0_seed42 --output runs/real/source_selection_clean/a0_seed42.json
+```
+
+强源域继续训练读取现有冻结源检查点清单，默认写入新目录 `runs/real/source_control_clean`。教师脚本保留原冻结路径，已有结果会阻止覆盖；不要为查看进度重复运行。
+
+局部头拆成缓存构建和相对头拟合。默认复用本机已有 `runs/real/presence_gate` 的冻结特征，输出到 `runs/real/presence_clean`。以下会实际拟合并重新生成评价文件，**本次清理未运行，也无需为查看既有结论运行**：
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.presence fit
+.\.venv\Scripts\python.exe -m scripts.presence evaluate
+.\.venv\Scripts\python.exe -m scripts.analyze_presence
+```
+
+需要重新构建特征时，顺序为 `build_presence_features freeze` → `cache-source` → `presence fit --cache-root runs/real/presence_features_clean` → `cache-evaluation` → `presence evaluate --cache-root runs/real/presence_features_clean` → `analyze_presence`，均通过 `python -m scripts.<模块>` 调用。缓存依赖的 `negative_context/split.json`、`balanced_context/split.json` 仅承载仍有效的数据角色，不要求恢复失败训练代码。新方案应使用新目录和新协议，不改写历史冻结结果。
+
+提交按一天主要成果汇总；本次按用户收尾授权统一提交。数据、权重、缓存、临时归档不提交。

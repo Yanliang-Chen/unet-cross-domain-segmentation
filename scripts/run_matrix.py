@@ -22,9 +22,7 @@ def commands(protocol_path, config_path, data_dir, run_root, device):
                      "--run-dir", str(run), "--seed", str(seed),
                      "--augmentation", augmentation, "--device", device]
             select = [sys.executable, "select_model.py", "--runs", str(run),
-                      "--target-images", str(Path(data_dir) / "target_select" / "images"),
-                      "--tolerance", str(protocol["source_dice_tolerance"]),
-                      "--output", str(selection), "--device", device]
+                      "--output", str(selection)]
             yield name, run, selection, train, select
 
 

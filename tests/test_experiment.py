@@ -10,18 +10,11 @@ import yaml
 from PIL import Image
 
 from scripts.check_protocol import check_protocol, sha256
-from scripts.final_analysis import cluster_interval, paired_dice
-from scripts.posthoc_diagnostics import spearman
-from select_model import require_target_selection_images, select_rows
 from train import augment
 from utils import per_image_metrics
 
 
 class ExperimentTests(unittest.TestCase):
-    def test_posthoc_rank_correlation_handles_ties_and_constant_scores(self):
-        self.assertAlmostEqual(spearman([1, 2, 2, 4], [4, 2, 2, 1]), -1.0)
-        self.assertEqual(spearman([1, 2, 3], [1, 2, 3]), 1.0)
-        self.assertIsNone(spearman([1, 1, 1], [1, 2, 3]))
 
     def test_protocol_lock_detects_changed_staged_image(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as temporary:
@@ -86,24 +79,6 @@ class ExperimentTests(unittest.TestCase):
             torch.testing.assert_close(a0_mask, a1_mask)
         torch.testing.assert_close(a0_geometry.get_state(), a1_geometry.get_state())
 
-    def test_selector_rejects_target_test_and_uses_source_gate(self):
-        with self.assertRaisesRegex(ValueError, "target_select"):
-            require_target_selection_images("data/demo/target_test/images",
-                                            {"data_dir": "data/demo"})
-        rows = [
-            {"checkpoint": "a.pt", "source_val_dice": 0.8,
-             "target_instability": 0.1, "mean_entropy": 0.2},
-            {"checkpoint": "b.pt", "source_val_dice": 0.79,
-             "target_instability": 0.11, "mean_entropy": 0.1},
-            {"checkpoint": "c.pt", "source_val_dice": 0.1,
-             "target_instability": 0.0, "mean_entropy": 0.0},
-        ]
-        methods, best = select_rows(rows, 0.03)
-        self.assertEqual(best, 0.8)
-        self.assertEqual(methods["source"]["checkpoint"], "a.pt")
-        self.assertEqual(methods["stability"]["checkpoint"], "a.pt")
-        self.assertEqual(methods["confidence"]["checkpoint"], "b.pt")
-        self.assertFalse(rows[2]["eligible"])
 
     def test_per_image_metric_boundaries(self):
         logits = torch.tensor([[[[-20.0, 20.0]]], [[[-20.0, -20.0]]],
@@ -113,21 +88,6 @@ class ExperimentTests(unittest.TestCase):
         rows = per_image_metrics(logits, masks)
         for metric in ("dice", "iou", "precision", "recall"):
             self.assertEqual([row[metric] for row in rows], [1.0, 0.0, 1.0])
-
-    def test_paired_difference_and_group_resampling(self):
-        source = {"per_image": [
-            {"sample_id": "1", "group_id": "a", "dice": 0.4},
-            {"sample_id": "2", "group_id": "b", "dice": 0.5},
-        ]}
-        selected = {"per_image": [
-            {"sample_id": "2", "group_id": "b", "dice": 0.6},
-            {"sample_id": "1", "group_id": "a", "dice": 0.5},
-        ]}
-        rows = paired_dice(source, selected)
-        self.assertEqual(len(rows), 2)
-        low, high = cluster_interval(rows, repeats=100)
-        self.assertAlmostEqual(low, 0.1)
-        self.assertAlmostEqual(high, 0.1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,32 @@
+version: 1
+training_protocol: presence_protocol.yaml
+primary_method: sam_relative_gate
+primary_comparator: external_previous
+positive_domain: CVC-ClinicDB
+negative_domain: normal_holdout
+prediction_threshold: 0.5
+success_requires_both_augmentations:
+  negative_FPR_reduction_at_least: 0.05
+  negative_FPR_reduction_95ci_lower_above: 0.0
+  positive_Dice_difference_95ci_lower_at_least: -0.01
+secondary_comparisons:
+- - unet_relative_gate
+  - external_previous
+- - sam_relative_gate
+  - unet_relative_gate
+diagnostic_domains:
+- normal_diagnostic
+- PolypGen-C6
+source_validation_domain_not_independent_target: normal_diagnostic
+augmentations:
+- a0
+- a1
+seeds:
+- 42
+- 43
+- 44
+bootstrap_unit: same_video_groups_for_paired_development_comparison
+bootstrap_replicates: 10000
+bootstrap_seed: 20261031
+scope: posthoc_development_relative_feature_repair_all_cohorts_already_used_no_new_confirmation
+decision: retain_relative_module_development_results_and_all_seeds_no_new_FAR_test

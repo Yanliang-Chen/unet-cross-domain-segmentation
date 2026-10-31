@@ -1,0 +1,34 @@
+# Prospective external test; no FAR image is used for adaptation or selection.
+version: 1
+dataset_root: data/FAR-POLYP-SEG/Dataset
+archive: data/FAR-POLYP-SEG/Dataset.zip
+archive_md5: 300e09ef379f969a75e8dfa45d64a3cd
+dataset_doi: https://doi.org/10.5281/zenodo.20284781
+patients: 455
+polyp_images: 432
+healthy_images: 7749
+seeds: [42, 43, 44]
+augmentations: [a0, a1]
+input_size: 256
+prediction_threshold: 0.5
+mask_threshold: 127
+source_presence_gate: native_source_has_at_least_one_pixel_above_0.5
+primary_method: gated_cross
+primary_comparator: gated_control
+cross_ensemble: equal_source_CVC_AdaBN_CVC_MeanTeacher
+control_ensemble: equal_source_matched_source_continuation
+primary_endpoint: mean_patient_mean_polyp_frame_dice
+normal_endpoint: mean_patient_mean_healthy_frame_false_positive_on_normal_only_patients
+bootstrap_unit: patient_groups_connected_by_shared_original_filename_or_identical_image_bytes
+duplicate_policy: retain_all_frames_merge_connected_patients_before_inference
+bootstrap_replicates: 10000
+bootstrap_seed: 20261031
+success_requires_all:
+  dice_gain_each_augmentation_at_least: 0.01
+  dice_gain_two_sided_95ci_lower_each_augmentation_above: 0.0
+  normal_false_positive_difference_95ci_upper_each_augmentation_at_most: 0.02
+secondary_methods: [source, control_ensemble, cross_ensemble]
+secondary_endpoints: [small_polyp_dice, normal_false_positive_all_patients, per_seed_dice]
+small_polyp_area_cutoff: 0.02
+decision: one_frozen_test_no_retraining_reweighting_seed_removal_or_threshold_search_after_unlock
+scope: external_generalization_of_frozen_CVC_adapted_pipeline_not_FAR_target_adaptation

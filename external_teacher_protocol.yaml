@@ -1,0 +1,46 @@
+version: 1
+status: controlled_development_external_teacher_study
+reference: https://doi.org/10.24963/ijcai.2026/140
+method: source_anchored_reciprocal_distillation_core_transfer
+scope: paper_core_transfer_not_full_online_source_free_ReDi_FM_reproduction
+paper_differences: [SAM_ViT_B_instead_of_ViT_H, offline_fixed_teacher_cache, labeled_source_anchor, EMA_checkpoint_selected_by_source_validation]
+source_selection: runs/real/followup/guarded_selection.json
+source_selection_sha256: c312e906e415a42b25b7e525712c173915d6349dfe2e8c212fbed1ad7b6dd809
+source_data: data/polyp_png
+source_train_count: 800
+source_val_count: 200
+target_images: data/polyp_png/target_select/images
+target_count: 185
+sam_checkpoint: data/pretrained/sam_vit_b_01ec64.pth
+sam_official_url: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+sam_model: vit_b
+sam_checkpoint_bytes: 375042383
+prompt: largest_component_centroid_and_max_RGB_deviation_foreground_point
+candidate_selection: maximum_dice_with_source_prediction_then_SAM_quality_then_index
+empty_source_policy: no_prompt_skip_target_distillation
+teacher_cache_dtype: float16
+arms: [external, self]
+self_control: substitute_source_probability_for_foundation_probability_in_identical_losses
+augmentations: [a0, a1]
+seeds: [42, 43, 44]
+epochs: 3
+batch_size: 8
+learning_rate: 0.00001
+weight_decay: 0.0001
+freeze_bn_statistics: true
+ema_decay: 0.99
+target_loss_weight: 0.2
+target_noise_sigma: 0.05
+confidence_gamma: 1.3
+confidence_mu: 0.5
+confidence_variance: 0.1
+uncertain_normalized_entropy_threshold: 0.5
+soft_loss_direction: reverse_cross_entropy_as_paper_equation_12
+gradient_updates_per_run: 300
+checkpoint_selection: maximum_source_validation_Dice
+ensemble_weights: [0.5, 0.5]
+prediction_threshold: 0.5
+primary_development_domain: CVC-ClinicDB
+secondary_development_domains: [PolypGen-C1, PolypGen-C2, PolypGen-C3, PolypGen-C4, PolypGen-C5, PolypGen-C6]
+forbidden_domain: FAR-POLYP-SEG
+primary_comparisons: [external_vs_self_distillation, external_vs_strong_source_continuation]

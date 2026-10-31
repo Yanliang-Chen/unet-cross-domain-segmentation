@@ -1,0 +1,34 @@
+# One exploratory intervention; frozen before training this variant.
+status: matched_source_continuation_control
+references:
+  confidence_masking: https://arxiv.org/abs/2001.07685
+  mean_teacher: https://arxiv.org/abs/1703.01780
+source_selection_sha256: c312e906e415a42b25b7e525712c173915d6349dfe2e8c212fbed1ad7b6dd809
+data_dir: data/polyp_png
+source_train_count: 800
+source_val_count: 200
+target_image_directories:
+  - data/PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3/data_C1/images_C1
+  - data/PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3/data_C2/images_C2
+  - data/PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3/data_C3/images_C3
+  - data/PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3/data_C4/images_C4
+  - data/PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3/data_C5/images_C5
+target_select_count: 1449
+seeds: [42, 43, 44]
+augmentations: [a0, a1]
+epochs: 3
+batch_size: 8
+learning_rate: 0.00001
+weight_decay: 0.0001
+target_consistency_weight: 0.0
+target_input_gaussian_sigma: 0.05
+teacher_ema_decay: 0.99
+target_consistency_loss: confidence_masked_pixel_bce
+confidence_threshold: 0.95
+freeze_bn_statistics: true
+checkpoint_selection: maximum_source_val_dice_over_three_epochs
+training_budget: 100_source_batches_and_100_target_batches_per_epoch
+ensemble_weights: [0.5, 0.5]
+evaluation_threshold: 0.5
+evaluation_design: C1_to_C5_transductive_diagnostics_C6_external_transfer
+evaluation_masks: never_used_for_training_or_checkpoint_selection

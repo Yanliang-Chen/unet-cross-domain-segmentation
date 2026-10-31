@@ -1,0 +1,29 @@
+# Supported by a prelisted secondary comparison on a new external patient cohort.
+# The separate UDA primary hypothesis failed; this is a stronger source baseline.
+version: 1
+status: independent_external_secondary_evidence_supported_baseline
+method: source_continuation_equal_probability_ensemble
+training_protocol: polypgen_source_control_protocol.yaml
+training_protocol_sha256: b394e237f6b91e9add5fb82bd00408bcd583b73d1fcbe208b951dcf9e2a64ac1
+model_manifest: runs/real/polypgen_source_control/adaptation.json
+model_manifest_sha256: a0e66c45ce6f829298b270c5f995785c3503ab4329b87af39881f0c7f0172c20
+members: [original_source_checkpoint, continued_source_ema_teacher]
+weights: [0.5, 0.5]
+aggregation: native_resolution_probability_mean
+source_presence_gate: false
+prediction_threshold: 0.5
+augmentations: [a0, a1]
+seeds: [42, 43, 44]
+learning_rate: 0.00001
+epochs: 3
+source_updates_per_epoch: 100
+source_batch_size: 8
+freeze_bn_statistics: true
+teacher_ema_decay: 0.99
+target_loss_weight: 0.0
+checkpoint_selection: highest_source_validation_dice
+evidence_report: results/2026-10-31-far-confirmatory.md
+far_primary_hypothesis_passed: false
+far_primary_decision_sha256: 31b8200091ef1450ddbe72fdb42595a87de8b07a658fdf4b523bfaf97599a50e
+far_secondary_result_sha256: 111ed4ad5c682ce58a3dcbb2b9cb6984489162f8178a12d3f4df73a5a29fd353
+scope: fixed_seed_external_patient_group_evidence_not_new_UDA_advantage_or_clinical_validation
