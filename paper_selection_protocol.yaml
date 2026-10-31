@@ -1,0 +1,37 @@
+# Exploratory application of two published selection ideas to the frozen six-run pool.
+# Designed after inspecting CVC-ClinicDB, CVC-ColonDB and ETIS results.
+protocol_version: 1
+status: exploratory_after_prior_target_results
+references:
+  cmr: https://arxiv.org/pdf/2503.00450
+  ensemble: https://arxiv.org/pdf/2608.12035
+original_protocol_sha256: 73f31711f37e23a0a463ee9db37e0948b09c8b3a88bfcf8edfc5cb1dc97db43b
+original_selection_sha256:
+  a0_seed42: b8859a380bb503404475132b89d1241cd996055d4ee01a9d2629685ad1f6667e
+  a0_seed43: 5fca1c299052224385ffe84d121085390d426e828f48db9941368edb1c8ebabd
+  a0_seed44: e680e788d14f104a7c977eccff2785fac2c11372aacf678d86fa679cd19167bf
+  a1_seed42: bcb166cc486cd105d799fc05a0721220b22e09251f093c0a3b3983a489a4238b
+  a1_seed43: 3345fcfde03f061c311cac6dcd18e9a80a3b86cab75ee282dd4e2e18fc6a6ec3
+  a1_seed44: 7bba9449fbcf63b5283e20d0d3c5fbcb9a6dcc068213262e9ad26e741be69178
+target_select_images: data/polyp_png/target_select/images
+expected_target_select_count: 185
+seeds: [42, 43, 44]
+augmentations: [a0, a1]
+source_dice_tolerance: 0.02
+empty_fraction_margin: 0.02
+cmr_metric: foreground_restricted_nhd_iou
+cmr_perturbation: additive_gaussian_noise
+cmr_sigma: 0.05
+cmr_noise_seed: 20261031
+prediction_threshold: 0.5
+empty_union_score: 0.0
+cmr_per_image_aggregation: median
+ensemble_members: [source, cmr]
+ensemble_weights: [0.5, 0.5]
+ensemble_space: native_resolution_probabilities
+small_polyp_area_cutoff: 0.02
+evaluation_domains:
+  CVC-ClinicDB: 427
+  CVC-ColonDB: 380
+  ETIS-LaribPolypDB: 196
+evaluation_status: exploratory_not_independent_confirmation
