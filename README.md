@@ -17,7 +17,22 @@
 | 冻结 SAM 外部教师学生 | ClinicDB 相对强单模型六种子均改善；A1 相对同损失 self 的独立收益未证实 |
 | 局部相对存在性头 | 相对同一学生，两增强均通过开发期误报下降/分割保留门槛；尚非完整 UDA 成功 |
 
-全部种子保留。已反复使用的 ClinicDB、PolypGen 只能用于开发；FAR 已完成一次正式评价，不再作为后续调参资料。下一步重点是直接面向整图误报的目标和新的独立确认，详见总览。
+全部种子保留。已反复使用的 ClinicDB、PolypGen 只能用于开发；FAR 已完成一次正式评价，不再作为后续调参资料。2026-10-31 起主线改为下方的完整流程基准；上表是转向前的保留结果。
+
+## 当前主线：完整 UDA 流程基准
+
+按导师建议，将 Xiong 等（arXiv:2608.12035）的完整流程评价扩展到息肉分割，以 Talks 等（arXiv:2503.00450）的 CMR 作分割专用验证器。网络固定为本项目 U-Net，算法只改训练损失或流程。协议见 [benchmark_protocol.yaml](benchmark_protocol.yaml)，进度见[每日进度](每日进度.md)。
+
+| 入口 | 用途 |
+| --- | --- |
+| `python -m benchmark.data` | 构建 6 个场景的 256 图像缓存与原尺寸掩码 |
+| `python -m benchmark.score register-source` / `run --pool <池>` | 登记候选并做原尺寸指标与基础验证器打分 |
+| `python -m benchmark.extra --pool <池>` | 瓶颈特征、CMR-TTD、MixVal 第二轮打分 |
+| `python -m benchmark.uda grid --scenario <场景>` | AdaBN＋8 个 UDA 算法×λ×6 条源轨迹；`train --algorithm continue --lams 0` 为继续训练对照 |
+| `python -m benchmark.analyze --pools <池...> --name <名>` | Oracle、选模差距与区间、Spearman/Kendall、集成、标注预算 |
+| `bash benchmark/after_grid_clinicdb.sh` | ClinicDB 网格结束后的对照、补打分与完整分析 |
+
+输出均在被 Git 忽略的 `runs/benchmark/`。
 
 ## 清理后的代码
 

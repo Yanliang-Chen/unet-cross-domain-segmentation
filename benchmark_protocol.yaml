@@ -1,0 +1,71 @@
+# Complete-pipeline UDA benchmark for polyp segmentation (Xiong et al. design,
+# Talks et al. CMR validators). Fixed before any benchmark score is computed.
+version: 1
+status: benchmark_of_adaptation_and_label_free_selection_not_method_claim
+created: 2026-10-31
+
+model:  # unchanged project U-Net (Ronneberger et al.); never altered by any algorithm
+  architecture: unet
+  base_channels: 16
+  depth: 4
+  input_size: 256
+prediction_threshold: 0.5
+
+source: Kvasir-SEG
+source_validation: data/polyp_png/source_val          # 200 labelled source images
+scenarios:
+  # validation = unlabelled target images seen by validators; test = labelled evaluation
+  clinicdb:  {validation: target_select_185_unlabelled, test: target_test_427, groups: video_group_20, setting: inductive}
+  colondb:   {validation: same_as_test, test: TestDataset/CVC-ColonDB_380, groups: none, setting: transductive}
+  etis:      {validation: same_as_test, test: TestDataset/ETIS-LaribPolypDB_196, groups: none, setting: transductive}
+  polypgen:  {validation: same_as_test, test: C1-C6_single_frames_1537_plus_holdout_normals_1755, groups: center_for_polyp_sequence_for_normal, setting: transductive}
+  far:       {validation: same_as_test, test: FAR_432_polyp_plus_7749_healthy, groups: duplicate_merged_444, setting: transductive}
+# FAR and ClinicDB were used earlier for method development. That does not bias a
+# benchmark of selection: Oracle uses target labels by definition, and validator
+# settings below are fixed from the literature, not tuned on any target.
+
+candidate_pools:
+  source_only: existing runs/real/{a0,a1}_seed{42,43,44}/checkpoints/epoch_001..030 (180)
+  uda: algorithm x lambda{0.1,0.5,1.0} x {a0,a1} x seeds{42,43,44} x saved checkpoints
+selection_pools: [within_run, within_algorithm, across_all]
+
+metrics:
+  native_resolution: probability bilinear to native size, mask >127, prediction >0.5
+  primary: mean_per_image_dice_on_polyp_images
+  secondary: [group_mean_dice, iou, small_polyp_dice_gt_fraction_below_0.02,
+              normal_fpr_any_pixel, normal_fpr_area_at_least_0.001,
+              image_level_auroc_max_probability]
+
+validators:  # every score oriented so that higher = better
+  source_risk: mean native Dice on source validation
+  entropy: negative mean binary pixel entropy on validation images
+  infomax: H(mean pixel probability) minus mean pixel entropy
+  bnm: nuclear norm of the pooled pixel prediction matrix [1-p, p], divided by pixel count
+  mcc: negative class confusion (temperature 2.5, entropy weights 1+exp(-H)), pooled pixels
+  cmr_nhd_gauss: median over images of mean per-class foreground-restricted IoU (Talks et al.)
+  cmr_ei_gauss: same restriction with sqrt(p_clean*p_noisy)*agreement
+  cmr_noise: {type: additive_gaussian, sigma: 0.05, clamp: [0, 1], seed: 20261031}
+  cmr_empty_class_rule: class absent in both predictions is omitted; both classes absent impossible
+  # Added 2026-10-31 after the first ClinicDB/ColonDB/ETIS look showed the two-class
+  # variants rewarding empty predictions (Talks et al. mode collapse). Sensitivity
+  # variants only, using the project's earlier pre-registered empty rule:
+  cmr_nhd_fg_gauss: median over images of foreground-only restricted IoU; empty/empty = 0
+  cmr_ei_fg_gauss: foreground-only EI; empty/empty = 0
+  # Second pass (benchmark/extra.py), added 2026-10-31 evening before any UDA analysis with them:
+  iwcv: negative importance-weighted source risk, loss = 1 - native source-validation Dice
+  dev: deep embedded validation with control variate (You et al. 2019); devn = weights normalised to mean 1
+  importance_weights: 5-fold out-of-fold L2 logistic domain classifier on standardised pooled bottleneck features (<=1000 target images)
+  snd: soft neighbourhood density entropy, temperature 0.05, L2-normalised pooled bottleneck features (<=1000 images)
+  mixval: median two-class restricted IoU between prediction on 0.6*x_i+0.4*x_j and the pseudo-mask of x_i; mixval_fg foreground-only
+  cmr_ttd: CMR variants with dropout p=0.1 on the bottleneck output, seed 20261031
+controls:
+  continue: same warm start, 2000 steps and joint source+target forward pass as the UDA runs, no target loss (lam 0)
+collapse_guard:  # Talks et al. mode-collapse warning; reported as a separate guarded variant
+  rule: drop candidates whose mean validation foreground fraction is outside [0.25, 4] x source-validation mask fraction
+reference_rules: [oracle_target_labels, last_checkpoint, pool_mean]
+ensemble: equal-weight probability mean of the distinct checkpoints chosen by the validators
+label_budget: {fractions: [0.01, 0.02, 0.03, 0.04, 0.05], repeats: 10, seed: 20261101}
+statistics:
+  correlation: [spearman, kendall]
+  bootstrap: {replicates: 2000, seed: 20261031, unit: group_where_available_else_image}
+decision: report_all_validators_algorithms_seeds_no_post_hoc_removal
