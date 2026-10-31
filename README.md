@@ -8,6 +8,7 @@ For the current status and cross-machine handoff, start with [每日进度.md](�
 The completed six-run real-data results are in [results/2026-10-26-real-polyp.md](results/2026-10-26-real-polyp.md).
 The failure analysis, guarded selection rule, and exploratory CVC-ColonDB/ETIS evaluation are in [results/2026-10-26-followup.md](results/2026-10-26-followup.md).
 Three literature-inspired training comparisons and their paired results are in [results/2026-10-26-literature-trials.md](results/2026-10-26-literature-trials.md).
+The exploratory foreground-consistency selection and source/CMR ensemble based on two newer papers are in [results/2026-10-31-paper-selection.md](results/2026-10-31-paper-selection.md).
 
 ## Research question
 
@@ -207,6 +208,27 @@ foreach ($s in 42,43,44) {
 }
 .\.venv\Scripts\python.exe -m scripts.evaluate_zoomout --device cuda
 ```
+
+### Exploratory foreground CMR selection and ensemble
+
+`paper_selection_protocol.yaml` applies [CMR-NHD](https://arxiv.org/pdf/2503.00450)
+to the 20 source-quality/empty-mask-gated checkpoints from the original six runs.
+It scores foreground agreement after one fixed Gaussian perturbation on the 185
+unlabeled target-selection images, then compares the CMR model with the source
+model and their equal-probability ensemble. The ensemble is a small adaptation
+of the strategy studied in [Xiong et al.](https://arxiv.org/pdf/2608.12035).
+On the Windows GPU machine:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.select_paper_cmr --device cuda
+.\.venv\Scripts\python.exe -m scripts.evaluate_paper_selection --device cuda
+```
+
+The scripts save selections and native-mask paired results under the ignored
+`runs/real/paper_selection/` directory. A0 improves on all three previously
+examined target sets, while A1 does not; see the report for exact figures. All
+three target sets had been inspected before this method was chosen, so this is
+exploratory evidence rather than independent validation.
 
 ## Files
 
