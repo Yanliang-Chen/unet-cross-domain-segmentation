@@ -135,11 +135,31 @@ Transductive setting, bootstrap over images ([results/benchmark/etis/paired.md](
 - **On ETIS, training longer hurts** (−0.028 against SourceOnly), so every adaptation method beats the control clearly.
 - **The best method depends on the target.** FDA is best on ETIS but only mid-ranked on ClinicDB, and DACS is the reverse. **MinEnt+MMD is second on both targets**, which makes it the most consistent method so far.
 
-## 5. In progress (2026-11-01)
+### 4.6 ColonDB reduced grid (1,500 candidates): H3 supported
 
-| Job | Content | Expected |
-|---|---|---|
-| ColonDB, reduced grid | MinEnt, MMD, DANN, FDA, MinEnt+MMD, DACS + control (H3) | started 17:40, tonight |
+Transductive setting, 380 images without video IDs, so the bootstrap is over images ([results/benchmark/colondb/paired.md](results/benchmark/colondb/paired.md)).
+
+| Method | Deployed Dice | Gain vs control [95% CI] | Better than control | Gain vs SourceOnly [95% CI] |
+|---|---:|---|---:|---|
+| DACS | 0.609 | +0.174 [+0.130, +0.223] | 18/18 | +0.165 [+0.135, +0.197] |
+| MinEnt+MMD | 0.568 | +0.133 [+0.079, +0.192] | 18/18 | +0.124 [+0.086, +0.168] |
+| MMD | 0.541 | +0.106 [+0.062, +0.158] | 18/18 | +0.097 [+0.058, +0.141] |
+| MinEnt | 0.534 | +0.098 [+0.038, +0.166] | 18/18 | +0.089 [+0.049, +0.130] |
+| FDA | 0.508 | +0.073 [+0.021, +0.131] | 15/18 | +0.064 [+0.029, +0.101] |
+| DANN | 0.498 | +0.062 [+0.029, +0.102] | 17/18 | +0.053 [+0.001, +0.101] |
+| AdaBN | 0.458 | +0.023 [−0.013, +0.063] | 4/6 | +0.014 |
+| SourceOnly | 0.444 | – | – | 0 |
+| Continue (control) | 0.435 | 0 | – | −0.009 |
+
+- **The largest gains so far.** Every method's interval excludes zero against both the control and SourceOnly; DACS adds +0.165 Dice over SourceOnly.
+- **Ranking across targets.** DACS is first on ClinicDB and ColonDB but third on ETIS; FDA is first on ETIS but fifth here. MinEnt+MMD is in the top two on all three targets and remains the most consistent method.
+- **Selection matters more here.** DACS reaches an Oracle of 0.711, but per-trajectory Source-Risk picks average 0.609; global Source-Risk on the merged pool picks a control checkpoint (0.488, gap 0.224). Fixed per-method deployment is again better than global label-free selection.
+
+**Summary across the three targets (gain over SourceOnly, interval excludes zero):** DACS, MinEnt+MMD and FDA on 3/3; MinEnt on 2/3 (borderline on ETIS); MMD on 2/3; DANN on 1/3.
+
+## 5. In progress
+
+Nothing running (ColonDB finished 2026-11-01 22:02).
 
 ## 6. Remaining work
 
@@ -147,7 +167,7 @@ Transductive setting, bootstrap over images ([results/benchmark/etis/paired.md](
 |---|---|---|---|---|
 | 1 | ~~Paired report for MinEnt+MMD and DACS on ClinicDB~~ (done, see 4.3) | H2 | – | Nov 1 |
 | 2 | ~~ETIS results and paired report~~ (done, see 4.5) | H3 | – | Nov 1 |
-| 3 | ColonDB, same reduced grid (running) | H3 | ≈ 4 h GPU | Nov 2 |
+| 3 | ~~ColonDB, same reduced grid~~ (done, see 4.6) | H3 | – | Nov 1 |
 | 4 | PolypGen and FAR. Grid reduced to the best 2–3 methods, λ=0.5, 5 checkpoints; written into the protocol before running | H3, false positives on normal images | ≈ 6–8 h GPU | Nov 3 |
 | 5 | Small-component post-processing (nnU-Net style, minimum area fixed in advance) on the deployed models | Cuts false positives on normal images | minutes per model | Nov 3 |
 | 6 | λ sensitivity and training-step curves for the best methods; small-polyp Dice per method | Analysis | CPU | Nov 4 |
