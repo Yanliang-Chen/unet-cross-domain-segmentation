@@ -117,19 +117,37 @@ Each trajectory deploys its Source-Risk pick. Gains are group-mean Dice differen
 - **Labelling 4% of the target (17 images)** gives a gap of 0.019. Smaller budgets do worse than Source-Risk.
 - **Scope:** all candidates share one architecture, so these results concern choosing checkpoints and methods for a fixed U-Net, not choosing between architectures.
 
+### 4.5 ETIS reduced grid (1,500 candidates): H3 supported on the hardest target
+
+Transductive setting, bootstrap over images ([results/benchmark/etis/paired.md](results/benchmark/etis/paired.md)).
+
+| Method | Deployed Dice | Gain vs control [95% CI] | Better than control | Gain vs SourceOnly |
+|---|---:|---|---:|---:|
+| FDA | 0.430 | +0.092 [+0.058, +0.128] | 18/18 | +0.064 |
+| MinEnt+MMD | 0.412 | +0.074 [+0.034, +0.114] | 16/18 | +0.046 |
+| DACS | 0.403 | +0.066 [+0.032, +0.101] | 17/18 | +0.038 |
+| MinEnt | 0.393 | +0.055 [+0.021, +0.089] | 18/18 | +0.027 |
+| MMD | 0.388 | +0.050 [+0.018, +0.081] | 16/18 | +0.022 |
+| DANN | 0.362 | +0.024 [+0.007, +0.042] | 15/18 | −0.004 |
+| SourceOnly | 0.366 | – | – | 0 |
+| Continue (control) | 0.338 | 0 | – | −0.028 |
+
+- **On ETIS, training longer hurts** (−0.028 against SourceOnly), so every adaptation method beats the control clearly.
+- **The best method depends on the target.** FDA is best on ETIS but only mid-ranked on ClinicDB, and DACS is the reverse. **MinEnt+MMD is second on both targets**, which makes it the most consistent method so far.
+
 ## 5. In progress (2026-11-01)
 
 | Job | Content | Expected |
 |---|---|---|
-| ETIS, reduced grid | MinEnt, MMD, DANN, FDA, MinEnt+MMD, DACS + control (H3) | tonight |
+| ColonDB, reduced grid | MinEnt, MMD, DANN, FDA, MinEnt+MMD, DACS + control (H3) | started 17:40, tonight |
 
 ## 6. Remaining work
 
 | # | Task | Purpose | Compute | When |
 |---|---|---|---|---|
 | 1 | ~~Paired report for MinEnt+MMD and DACS on ClinicDB~~ (done, see 4.3) | H2 | – | Nov 1 |
-| 2 | ETIS results and paired report | H3, hardest target | queued | Nov 2 |
-| 3 | ColonDB, same reduced grid | H3 | ≈ 5 h GPU | Nov 2 |
+| 2 | ~~ETIS results and paired report~~ (done, see 4.5) | H3 | – | Nov 1 |
+| 3 | ColonDB, same reduced grid (running) | H3 | ≈ 4 h GPU | Nov 2 |
 | 4 | PolypGen and FAR. Grid reduced to the best 2–3 methods, λ=0.5, 5 checkpoints; written into the protocol before running | H3, false positives on normal images | ≈ 6–8 h GPU | Nov 3 |
 | 5 | Small-component post-processing (nnU-Net style, minimum area fixed in advance) on the deployed models | Cuts false positives on normal images | minutes per model | Nov 3 |
 | 6 | λ sensitivity and training-step curves for the best methods; small-polyp Dice per method | Analysis | CPU | Nov 4 |
