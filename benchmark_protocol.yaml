@@ -1,8 +1,10 @@
 # Complete-pipeline UDA benchmark for polyp segmentation (Xiong et al. design,
 # Talks et al. CMR validators). Fixed before any benchmark score is computed.
 version: 1
-status: benchmark_of_adaptation_and_label_free_selection_not_method_claim
+status: domain_adaptive_segmentation_with_fixed_unet
 created: 2026-10-31
+# 2026-11-01: project focus is segmentation under domain shift (adaptation methods for the
+# fixed U-Net). The validator study below is kept as supporting evaluation, not the goal.
 
 model:  # unchanged project U-Net (Ronneberger et al.); never altered by any algorithm
   architecture: unet
@@ -28,6 +30,18 @@ candidate_pools:
   source_only: existing runs/real/{a0,a1}_seed{42,43,44}/checkpoints/epoch_001..030 (180)
   uda: algorithm x lambda{0.1,0.5,1.0} x {a0,a1} x seeds{42,43,44} x saved checkpoints
 selection_pools: [within_run, within_algorithm, across_all]
+
+# Main comparison from 2026-11-01. Every trajectory (method, base run, lambda) deploys its
+# Source-Risk pick; that pick is compared with the same base run's continued-training
+# control and SourceOnly pick (per-group Dice difference, joint bootstrap over base runs
+# and image groups, benchmark/report.py). Fixed before the new methods were scored.
+methods:
+  minent_mmd: source + lam*(mean target pixel entropy + bottleneck multi-kernel MMD)
+  dacs: source + lam*weighted BCE on mixed images (source polyp pixels pasted onto target);
+        label outside the paste = EMA-teacher (0.99) hard pseudo-label, weight = share of
+        teacher pixels with confidence > 0.968; brightness/contrast/RGB jitter 0.2; student deployed
+  scenarios: clinicdb (all methods); etis (minent, mmd, dann, fda, minent_mmd, dacs, continue)
+evaluation_default: [score, analyze, report]   # extra feature validators and ensembles optional
 
 metrics:
   native_resolution: probability bilinear to native size, mask >127, prediction >0.5

@@ -19,20 +19,28 @@
 
 全部种子保留。已反复使用的 ClinicDB、PolypGen 只能用于开发；FAR 已完成一次正式评价，不再作为后续调参资料。2026-10-31 起主线改为下方的完整流程基准；上表是转向前的保留结果。
 
-## 当前主线：完整 UDA 流程基准
+## 当前主线：域偏移下的息肉分割（固定 U-Net）
 
-按导师建议，将 Xiong 等（arXiv:2608.12035）的完整流程评价扩展到息肉分割，以 Talks 等（arXiv:2503.00450）的 CMR 作分割专用验证器。网络固定为本项目 U-Net，算法只改训练损失或流程。协议见 [benchmark_protocol.yaml](benchmark_protocol.yaml)，进度见[每日进度](每日进度.md)。
+**方向（2026-11-01 确定）。** 研究在源域（Kvasir-SEG）有标签、目标医院/设备无标签时，如何用域适应训练让本项目的原始 U-Net 在新域上分割得更好。网络结构固定（基础通道 16、4 层、输入 256），方法只改训练损失或流程；判别器、EMA 教师等只在训练中使用。导师推荐的 Xiong 等（arXiv:2608.12035）与 Talks 等（arXiv:2503.00450）只作为评价思路：每个方法都与同起点的“继续训练”对照配对比较，检查点按源验证 Dice 事前规则选择，不用目标标签挑模型。UNet++ 对比不做（改变网络、偏离主线）。
+
+**目标。**
+1. 找到在固定 U-Net 上稳定优于继续训练对照的适应方法（ClinicDB 上 MinEnt、MMD 已有初步证据），并设计分割专用改进（MinEnt+MMD、DACS 式跨域粘贴＋伪标签）。
+2. 在 ETIS、ColonDB、PolypGen、FAR 上检查泛化，同时报告小息肉 Dice 和正常图误报。
+3. 用轻量评价说明可部署性：固定选模规则下的收益与区间；无标签验证器的失效作为辅助结论。
+
+完整实验方案（已完成/进行中/待做）见 [EXPERIMENT_PROPOSAL.md](EXPERIMENT_PROPOSAL.md)。协议见 [benchmark_protocol.yaml](benchmark_protocol.yaml)，结果表见 [results/benchmark/](results/benchmark/)，进度见[每日进度](每日进度.md)。
 
 | 入口 | 用途 |
 | --- | --- |
 | `python -m benchmark.data` | 构建 6 个场景的 256 图像缓存与原尺寸掩码 |
-| `python -m benchmark.score register-source` / `run --pool <池>` | 登记候选并做原尺寸指标与基础验证器打分 |
-| `python -m benchmark.extra --pool <池>` | 瓶颈特征、CMR-TTD、MixVal 第二轮打分 |
-| `python -m benchmark.uda grid --scenario <场景>` | AdaBN＋8 个 UDA 算法×λ×6 条源轨迹；`train --algorithm continue --lams 0` 为继续训练对照 |
-| `python -m benchmark.analyze --pools <池...> --name <名>` | Oracle、选模差距与区间、Spearman/Kendall、集成、标注预算 |
-| `bash benchmark/after_grid_clinicdb.sh` | ClinicDB 网格结束后的对照、补打分与完整分析 |
+| `python -m benchmark.uda grid --scenario <场景> --algorithms <方法...>` | AdaBN＋适应方法×λ×6 条源轨迹；`train --algorithm continue --lams 0` 为继续训练对照 |
+| `python -m benchmark.score run --pool <池>` | 原尺寸指标与基础验证器打分 |
+| `python -m benchmark.analyze --pools <池...> --name <名>` | Oracle、选模差距与区间、标注预算 |
+| `python -m benchmark.report --scenario <场景>` | 写入 Git 跟踪的 `results/benchmark/<场景>/`：逐候选 CSV 与相对对照的配对收益表 |
+| `bash benchmark/run_scenario.sh <场景> <方法...>` | 一个场景的训练、对照、打分与分析全流程 |
+| `python -m benchmark.extra --pool <池>` | 可选：瓶颈特征、CMR-TTD、MixVal 等第二轮验证器 |
 
-输出均在被 Git 忽略的 `runs/benchmark/`。
+原始检查点和逐图分数在被 Git 忽略的 `runs/benchmark/`；写报告需要的汇总表由 `benchmark.report` 复制到 `results/benchmark/`。
 
 ## 清理后的代码
 

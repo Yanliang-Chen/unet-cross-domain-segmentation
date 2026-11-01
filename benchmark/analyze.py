@@ -49,7 +49,7 @@ def candidate_metrics(scores, meta):
     return out
 
 
-def load_pools(pools):
+def load_pools(pools, features=True):
     table, units = {}, {}
     for pool in pools:
         candidates = json.loads((REGISTRY/f"{pool}.json").read_text(encoding="utf-8"))
@@ -79,7 +79,7 @@ def load_pools(pools):
                 row = {**c, "pool": pool, **candidate_metrics(scores, meta)}
                 row["validators"]["source_risk"] = source.get(c["id"], float("nan"))
                 extra = path.with_suffix(".extra.npz")
-                if extra.exists() and c["id"] in source_extra:
+                if features and extra.exists() and c["id"] in source_extra:
                     target = np.load(extra)
                     z_source, source_dice = source_extra[c["id"]]
                     row["validators"].update(feature_validators(z_source, source_dice, target["z"],
