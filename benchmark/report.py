@@ -58,7 +58,8 @@ def paired(rows, units):
         keys = [k for k in picks if k[0] == algorithm]
         runs = sorted({b for _, b, _ in keys})
         row = {"algorithm": algorithm, "n": len(keys),
-               "dice": float(np.mean([picks[k]["dice"] for k in keys]))}
+               "dice": float(np.mean([picks[k]["dice"] for k in keys])),
+               "fpr": f"{np.mean([picks[k]['fpr_any'] for k in keys]):.3f}" if "fpr_any" in picks[keys[0]] else "–"}
         for name, ref in (("control", control), ("source", source)):
             # per base run: mean over its lambdas of per-group Dice differences
             per_run = np.stack([np.mean([np.bincount(inverse, picks[k]["_dice"]-ref[b]["_dice"], len(labels))
@@ -78,11 +79,11 @@ def markdown_paired(table, scenario):
     lines = [f"# Paired gains on {scenario}: Source-Risk pick per trajectory",
              "", "Gain = per-group Dice difference to the same base run's pick, averaged over lambdas; "
              f"95% interval from {BOOTSTRAP} joint bootstrap draws over base runs and image groups.", "",
-             "| Algorithm | Trajectories | Pick Dice | vs control [95% CI] | Wins | vs SourceOnly [95% CI] | Wins |",
-             "|---|---:|---:|---|---:|---|---:|"]
+             "| Algorithm | Trajectories | Pick Dice | Normal FPR | vs control [95% CI] | Wins | vs SourceOnly [95% CI] | Wins |",
+             "|---|---:|---:|---:|---|---:|---|---:|"]
     for r in table:
         c, s = r["control_ci"], r["source_ci"]
-        lines.append(f"| {r['algorithm']} | {r['n']} | {r['dice']:.3f} | {r['control']:+.3f} "
+        lines.append(f"| {r['algorithm']} | {r['n']} | {r['dice']:.3f} | {r['fpr']} | {r['control']:+.3f} "
                      f"[{c[0]:+.3f}, {c[1]:+.3f}] | {r['control_wins']}/{r['n']} | {r['source']:+.3f} "
                      f"[{s[0]:+.3f}, {s[1]:+.3f}] | {r['source_wins']}/{r['n']} |")
     return "\n".join(lines) + "\n"
