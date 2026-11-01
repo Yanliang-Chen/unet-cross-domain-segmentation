@@ -80,16 +80,18 @@ Intervals come from 2,000 bootstrap draws over base runs and image groups jointl
 
 ColonDB and ETIS match published U-Net results for these unseen datasets (about 0.51 and 0.40 in the PraNet paper). The drop from the source domain is domain shift, not a weak baseline.
 
-### 4.3 ClinicDB full grid (1,860 candidates): H1 supported for four methods
+### 4.3 ClinicDB full grid (2,220 candidates): H1 and H2 supported
 
 Each trajectory deploys its Source-Risk pick. Gains are group-mean Dice differences (from [results/benchmark/clinicdb/paired.md](results/benchmark/clinicdb/paired.md)).
 
 | Method | Deployed Dice | Gain vs control [95% CI] | Better than control | Gain vs SourceOnly [95% CI] |
 |---|---:|---|---:|---|
-| MinEnt | 0.664 | +0.026 [−0.013, +0.066] | 14/18 | +0.058 [+0.016, +0.111] |
-| MMD | 0.658 | +0.025 [+0.003, +0.051] | **18/18** | +0.056 [+0.006, +0.117] |
-| DANN | 0.649 | +0.015 [+0.001, +0.030] | 14/18 | +0.046 [−0.008, +0.109] |
-| FDA | 0.650 | +0.011 [−0.038, +0.064] | 13/18 | +0.042 [−0.008, +0.097] |
+| **DACS (new)** | **0.686** | **+0.050 [+0.020, +0.082]** | **18/18** | +0.082 [+0.034, +0.138] |
+| **MinEnt+MMD (new)** | 0.670 | +0.036 [+0.003, +0.077] | 17/18 | +0.068 [+0.020, +0.126] |
+| MinEnt | 0.664 | +0.026 [−0.016, +0.069] | 14/18 | +0.058 [+0.017, +0.109] |
+| MMD | 0.658 | +0.025 [+0.001, +0.052] | **18/18** | +0.056 [+0.004, +0.116] |
+| DANN | 0.649 | +0.015 [+0.001, +0.031] | 14/18 | +0.046 [−0.006, +0.108] |
+| FDA | 0.650 | +0.011 [−0.037, +0.061] | 13/18 | +0.042 [−0.007, +0.094] |
 | Continue (control) | 0.637 | 0 | – | +0.031 [−0.027, +0.096] |
 | AdvEnt | 0.635 | −0.001 [−0.012, +0.010] | 9/18 | +0.030 |
 | BNM | 0.627 | −0.011 [−0.022, −0.002] | 5/18 | +0.020 |
@@ -99,7 +101,9 @@ Each trajectory deploys its Source-Risk pick. Gains are group-mean Dice differen
 | MCC | 0.476 | −0.156 [−0.212, −0.104] | 0/18 | −0.125 |
 
 - **Training longer alone helps** (+0.031 over SourceOnly). Without the control, about half of every method's gain would be misattributed to adaptation.
-- **MMD and DANN are the only methods whose interval against the control excludes zero.** MinEnt has the largest mean gain but more variance.
+- **The new segmentation-specific methods are the strongest (H2).** DACS beats the control in all 18 trajectories (+0.050, interval above zero) and improves with λ: deployed Dice 0.669 / 0.690 / 0.699 at λ 0.1 / 0.5 / 1. Its small-polyp Dice is 0.481 at λ=1, against 0.393 for the control. MinEnt+MMD (+0.036, 17/18) beats either of its parts alone.
+- **Among the earlier methods, only MMD and DANN have intervals against the control that exclude zero.** MinEnt has a larger mean gain but more variance.
+- **The best checkpoint overall is now DACS** (Oracle 0.727). Source-Risk still picks a control checkpoint over the combined pool (0.676), so per-method deployment with a fixed rule beats global label-free selection.
 - **Negative results:** MCC, Mean Teacher and AdaBN fall below the control, and BNM is slightly below it.
 
 ### 4.4 Label-free selection on ClinicDB (H4 supported)
@@ -117,14 +121,13 @@ Each trajectory deploys its Source-Risk pick. Gains are group-mean Dice differen
 
 | Job | Content | Expected |
 |---|---|---|
-| ClinicDB, new methods | MinEnt+MMD and DACS × 3 λ × 6 runs, then scoring and the paired report (H2) | today, about 14:00 |
 | ETIS, reduced grid | MinEnt, MMD, DANN, FDA, MinEnt+MMD, DACS + control (H3) | tonight |
 
 ## 6. Remaining work
 
 | # | Task | Purpose | Compute | When |
 |---|---|---|---|---|
-| 1 | Paired report for MinEnt+MMD and DACS on ClinicDB | H2 | CPU, minutes | Nov 1 |
+| 1 | ~~Paired report for MinEnt+MMD and DACS on ClinicDB~~ (done, see 4.3) | H2 | – | Nov 1 |
 | 2 | ETIS results and paired report | H3, hardest target | queued | Nov 2 |
 | 3 | ColonDB, same reduced grid | H3 | ≈ 5 h GPU | Nov 2 |
 | 4 | PolypGen and FAR. Grid reduced to the best 2–3 methods, λ=0.5, 5 checkpoints; written into the protocol before running | H3, false positives on normal images | ≈ 6–8 h GPU | Nov 3 |

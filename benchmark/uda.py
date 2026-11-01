@@ -29,12 +29,17 @@ from utils import atomic_torch_save, bce_dice_loss, choose_device, seed_everythi
 OUT = Path("runs/benchmark/uda")
 RUNS = [f"{a}_seed{s}" for a in ("a0", "a1") for s in (42, 43, 44)]
 ALGORITHMS = ("minent", "advent", "dann", "mmd", "bnm", "mcc", "meanteacher", "fda")
+# Segmentation-focused methods added 2026-11-01 on top of the two that beat the control
+# on ClinicDB (MinEnt, MMD): their combination, and DACS-style cross-domain mixing with
+# EMA-teacher pseudo-labels (Tranheden et al. 2021) adapted to binary polyp masks.
+METHODS = ("minent_mmd", "dacs")
 # Matched control: same warm start, steps, batches and joint source+target forward pass
 # (target images still reach BatchNorm), but no target loss term. Run with --lams 0.
 CONTROLS = ("continue",)
 # loss = source + lam * WEIGHT * term; FDA uses lam to set its band size beta instead
 WEIGHT = {"continue": 0.0, "minent": 1.0, "advent": 0.01, "dann": 0.1, "mmd": 1.0, "bnm": 1.0, "mcc": 1.0,
-          "meanteacher": 1.0}
+          "meanteacher": 1.0, "minent_mmd": 1.0, "dacs": 1.0}
+DACS_CONFIDENCE = 0.968                 # DACS: per-image share of pixels above this weights the loss
 FDA_BETA = {0.1: 0.01, 0.5: 0.05, 1.0: 0.09}
 STEPS, EVERY, LR, BATCH = 2000, 200, 1e-4, 8
 
@@ -152,6 +157,29 @@ def fda_source_to_target(source, target, beta):
     return torch.fft.ifft2(amplitude*torch.exp(1j*phase)).real.clamp(0, 1)
 
 
+def color_jitter(images, generator, strength=0.2):
+    """Per-image brightness, contrast and RGB gain on the device (DACS strong augmentation)."""
+    n = len(images)
+    def factor(*shape):
+        return 1 + strength*(2*torch.rand(n, *shape, generator=generator, device=images.device)-1)
+    mean = images.mean((1, 2, 3), keepdim=True)
+    images = (images - mean)*factor(1, 1, 1) + mean
+    return (images*factor(1, 1, 1)*factor(3, 1, 1)).clamp(0, 1)
+
+
+def dacs_batch(x, y, t, teacher, generator):
+    """Paste source polyps onto target images; outside them the label is the teacher's
+    hard pseudo-label, weighted by the image's share of confident teacher pixels."""
+    with torch.no_grad():
+        p = teacher(t).sigmoid()
+    confident = (torch.maximum(p, 1-p) > DACS_CONFIDENCE).float().mean((1, 2, 3), keepdim=True)
+    paste = (y > 0.5).float()
+    mixed = color_jitter(paste*x + (1-paste)*t, generator)
+    label = paste*y + (1-paste)*(p > 0.5).float()
+    weight = paste + (1-paste)*confident
+    return mixed, label, weight
+
+
 def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
     folder = OUT/algorithm/scenario/f"{run}_l{lam:g}"
     rows = [candidate(algorithm, scenario, run, lam, s, folder/f"step_{s:04d}.pt")
@@ -177,7 +205,7 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
     optimizer = torch.optim.AdamW(list(model.parameters()) + (list(extra.parameters()) if algorithm == "dann" else []),
                                   lr=LR, weight_decay=float(cfg["weight_decay"]))
     d_optimizer = torch.optim.Adam(extra.parameters(), lr=LR, betas=(0.9, 0.99)) if algorithm == "advent" else None
-    teacher = copy.deepcopy(model).eval() if algorithm == "meanteacher" else None
+    teacher = copy.deepcopy(model).eval() if algorithm in ("meanteacher", "dacs") else None
     loader = DataLoader(source, batch_size=BATCH, shuffle=True, drop_last=True,
                         generator=torch.Generator().manual_seed(seed+1000))
     geometry = torch.Generator().manual_seed(seed+2000)
@@ -198,6 +226,8 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
             x = fda_source_to_target(x, t, FDA_BETA[lam])
             loss = bce_dice_loss(model(x), y)
         else:
+            if algorithm == "dacs":
+                t, mixed_label, mixed_weight = dacs_batch(x, y, t, teacher, pixel_rng)
             logits = model(torch.cat((x, t)))
             zs, zt = features["z"].mean((2, 3)).split(BATCH)
             ls, lt = logits.split(BATCH)
@@ -213,6 +243,10 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
                 domain = extra["d"](GradientReverse.apply(torch.cat((zs, zt)), weight)).squeeze(1)
                 labels = torch.cat((torch.ones(BATCH), torch.zeros(BATCH))).to(device)
                 loss = loss + F.binary_cross_entropy_with_logits(domain, labels)
+            elif algorithm == "minent_mmd":
+                loss = loss + weight*(binary_entropy(lt.sigmoid()).mean() + gaussian_mmd(zs, zt))
+            elif algorithm == "dacs":
+                loss = loss + weight*F.binary_cross_entropy_with_logits(lt, mixed_label, weight=mixed_weight)
             elif algorithm == "mmd":
                 loss = loss + weight*gaussian_mmd(zs, zt)
             elif algorithm == "bnm":
@@ -243,7 +277,7 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
             update_teacher(teacher, model, 0.99)
         step += 1
         if step % every == 0:
-            deployed = teacher if teacher is not None else model
+            deployed = teacher if algorithm == "meanteacher" else model   # DACS deploys the student
             atomic_torch_save({"config": cfg, "model_state_dict": deployed.state_dict(),
                                "source_checkpoint": str(start), "algorithm": algorithm,
                                "lam": lam, "step": step}, folder/f"step_{step:04d}.pt")
@@ -254,19 +288,20 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=["adabn", "train", "grid"])
-    parser.add_argument("--algorithm", choices=ALGORITHMS + CONTROLS)
-    parser.add_argument("--algorithms", nargs="+", default=list(ALGORITHMS))
+    parser.add_argument("--algorithm", choices=ALGORITHMS + METHODS + CONTROLS)
+    parser.add_argument("--algorithms", nargs="+", default=list(ALGORITHMS), choices=ALGORITHMS + METHODS)
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--runs", nargs="+", default=RUNS)
     parser.add_argument("--lams", nargs="+", type=float, default=[0.1, 0.5, 1.0])
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--skip", nargs="*", default=[], help="grid: pass adabn to skip it")
     args = parser.parse_args()
     device = choose_device(args.device)
     if args.command == "adabn":
         adabn(args.scenario, args.runs, device)
         return
     algorithms = [args.algorithm] if args.command == "train" else args.algorithms
-    if args.command == "grid":
+    if args.command == "grid" and "adabn" not in args.skip:
         adabn(args.scenario, args.runs, device)
     for run in args.runs:                     # run-major: every algorithm appears early
         for lam in args.lams:
