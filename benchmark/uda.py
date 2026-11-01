@@ -293,6 +293,7 @@ def main():
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--runs", nargs="+", default=RUNS)
     parser.add_argument("--lams", nargs="+", type=float, default=[0.1, 0.5, 1.0])
+    parser.add_argument("--every", type=int, default=EVERY, help="steps between saved checkpoints")
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--skip", nargs="*", default=[], help="grid: pass adabn to skip it")
     args = parser.parse_args()
@@ -306,7 +307,7 @@ def main():
     for run in args.runs:                     # run-major: every algorithm appears early
         for lam in args.lams:
             for algorithm in algorithms:
-                register(f"uda_{algorithm}", train(algorithm, args.scenario, run, lam, device))
+                register(f"uda_{algorithm}", train(algorithm, args.scenario, run, lam, device, every=args.every))
 
 
 if __name__ == "__main__":

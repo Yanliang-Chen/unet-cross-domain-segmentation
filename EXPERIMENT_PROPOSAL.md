@@ -155,7 +155,7 @@ Transductive setting, 380 images without video IDs, so the bootstrap is over ima
 - **Ranking across targets.** DACS is first on ClinicDB and ColonDB but third on ETIS; FDA is first on ETIS but fifth here. MinEnt+MMD is in the top two on all three targets and remains the most consistent method.
 - **Selection matters more here.** DACS reaches an Oracle of 0.711, but per-trajectory Source-Risk picks average 0.609; global Source-Risk on the merged pool picks a control checkpoint (0.488, gap 0.224). Fixed per-method deployment is again better than global label-free selection.
 
-**Summary across the three targets (gain over SourceOnly, interval excludes zero):** DACS, MinEnt+MMD and FDA on 3/3; MinEnt on 2/3 (borderline on ETIS); MMD on 2/3; DANN on 1/3.
+**Summary across the three targets (gain over SourceOnly, interval excludes zero):** DACS and MinEnt+MMD on 3/3; FDA on 2/3 (ETIS, ColonDB; not ClinicDB); MinEnt on 2/3 (borderline on ETIS); MMD on 2/3; DANN on 1/3.
 
 ## 5. In progress
 

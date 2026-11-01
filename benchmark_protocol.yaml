@@ -40,7 +40,15 @@ methods:
   dacs: source + lam*weighted BCE on mixed images (source polyp pixels pasted onto target);
         label outside the paste = EMA-teacher (0.99) hard pseudo-label, weight = share of
         teacher pixels with confidence > 0.968; brightness/contrast/RGB jitter 0.2; student deployed
-  scenarios: clinicdb (all methods); etis (minent, mmd, dann, fda, minent_mmd, dacs, continue)
+  scenarios: clinicdb (all methods); etis, colondb (minent, mmd, dann, fda, minent_mmd, dacs, continue)
+  # Fixed 2026-11-01 evening, before any PolypGen/FAR adaptation run: DACS and MinEnt+MMD (gain over
+  # SourceOnly excluded zero on ClinicDB, ETIS and ColonDB) and FDA (best on ETIS; excluded zero
+  # on ETIS and ColonDB), plus the control.
+  # lam 0.5 only, checkpoints every 400 steps (5 per trajectory); same deployment rule.
+  # Target images for adaptation include the normal images (PolypGen 1,755, FAR 7,749).
+  # Extra reported metric: normal-image FPR of each deployed pick (Dice/FPR trade-off).
+  # FAR was used for method development before 2026-11-01; its result is reported with that caveat.
+  reduced_grid: {scenarios: [polypgen, far], methods: [dacs, minent_mmd, fda, continue], lams: [0.5], every: 400}
 evaluation_default: [score, analyze, report]   # extra feature validators and ensembles optional
 
 metrics:
