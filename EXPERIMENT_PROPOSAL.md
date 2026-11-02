@@ -211,9 +211,72 @@ Rule fixed in the protocol before any post-processed prediction: remove 8-connec
 - **Sensitivity threshold (0.41%)** cuts FPR by 6.9–14.0 points on both targets with Dice change −0.007 to +0.019 and would pass. Switching to it after seeing results would be post hoc, so it is reported as sensitivity only.
 - **Post-processing does not change the ranking or replace adaptation.** The control still flags 68–74% of normal images; most false positives are components larger than 0.1% of the image.
 
+### 4.10 λ, training length and small polyps (CPU, from the tracked candidate tables)
+
+Script `benchmark/curves.py`; table `results/benchmark/curves.md`; figures `results/benchmark/figures/{step_curves,step_fpr,lambda}.png`.
+
+**λ.**
+- DACS improves monotonically with λ on all four targets with three λ values. At λ 0.1 / 1:
+  - ClinicDB 0.669 / 0.699
+  - ETIS 0.374 / 0.422
+  - ColonDB 0.545 / 0.658
+  - PolypGen 0.590 / 0.606, with normal FPR 60% / 25%
+- FDA goes the other way: it is best at λ=0.1 on ClinicDB, ColonDB and PolypGen.
+- MinEnt+MMD is flat.
+- The main results average over λ. Recommending λ=1 for DACS is a post hoc observation, not a change to the deployed numbers.
+
+**Training length.**
+- All three methods pass SourceOnly within 200–400 steps.
+- The control drifts below its start on ETIS, ColonDB and FAR (ColonDB 0.443 → 0.410).
+- MinEnt+MMD peaks early: the mean pick is at steps 480–760, and the last step is clearly worse (ColonDB 0.496 vs 0.568 at the pick), so checkpoint selection matters for it.
+- DACS keeps improving on ColonDB.
+- The Source-Risk pick is close to the best checkpoint in each trajectory: the gap is 0.003–0.032 for the methods and 0.008–0.069 for the control.
+- Over training, the control's normal FPR climbs to 83–85%, while DACS on FAR falls to about 41%.
+
+**Small polyps (GT under 2%).** Gain over the same base run's SourceOnly pick, in trajectories won:
+
+| Target | DACS | MinEnt+MMD | FDA |
+|---|---|---|---|
+| ETIS | +0.036 (14/18) | +0.037 (13/18) | +0.077 (18/18) |
+| ColonDB | +0.116 (16/18) | +0.083 (16/18) | +0.087 (18/18) |
+| FAR | +0.063 (6/6) | +0.031 (5/6) | +0.045 (6/6) |
+
+- On ClinicDB and PolypGen the small-polyp gains are close to zero (+0.005 to +0.023), so the overall gains there come from larger polyps.
+- The control (−0.017 to −0.063) and AdaBN lower small-polyp Dice on every target.
+
+### 4.11 Qualitative examples
+
+`benchmark/qualitative.py` writes `results/benchmark/figures/qualitative_<target>.png` and lists the chosen images in `results/benchmark/qualitative.md`.
+
+**What is shown.** Models from base run a0_seed42 (Source-Risk pick, λ=0.5): SourceOnly, control, DACS, MinEnt+MMD and FDA.
+
+**How images were chosen.** By a fixed rule using those same models, not by eye:
+- the polyp images where DACS gains most, at the median, and least over SourceOnly;
+- a small polyp at the median DACS Dice;
+- on PolypGen and FAR, two normal images: one flagged by the control but clean under DACS and SourceOnly, and one flagged by DACS but clean under SourceOnly.
+
+**What they show.**
+- **The typical gain is recovering a polyp SourceOnly missed entirely.** SourceOnly scores Dice 0 while the adapted models score 0.9 or higher, on every target.
+- **The control fails with large false regions** on background mucosa, instruments or over-exposed areas, which matches its 74–79% normal FPR.
+- **The adapted models fail by losing low-contrast small polyps that SourceOnly found**, as in the worst rows on ColonDB and FAR (DACS 0.00 against SourceOnly 0.71–0.83), or by spreading onto instruments and glare.
+- **DACS false positives on normal images are small blobs** on over-exposed or yellow-tinted frames, the kind small-component removal targets. FDA's blobs on the same frames are larger.
+
+### 4.12 Summary figures
+
+`benchmark/summary_figures.py` reads only tables already in git.
+
+- **`figures/gains.png`:** paired gain with 95% interval over SourceOnly and over the control, for each method on each target. An open marker means the interval includes zero.
+  - Over the control, every method is positive on ClinicDB, ETIS, ColonDB and FAR. ClinicDB FDA is the one exception, with an interval that includes zero.
+  - PolypGen is the only target where all three methods' intervals include zero.
+  - The control's interval against SourceOnly includes zero on every target.
+- **`figures/dice_fpr.png`:** deployed Dice against normal-image FPR on PolypGen and FAR. Small dots are single trajectories; large markers are method means.
+  - FAR: DACS sits top-left, with the highest Dice and the lowest FPR.
+  - On both targets the control sits far right, at 74–79% FPR.
+  - PolypGen: all three methods beat SourceOnly on Dice but have 12–15 points more FPR.
+
 ## 5. In progress
 
-Nothing running (post-processing finished 2026-11-02).
+Nothing running (summary figures finished 2026-11-02; only the write-up remains).
 
 ## 6. Remaining work
 
@@ -224,8 +287,8 @@ Nothing running (post-processing finished 2026-11-02).
 | 3 | ~~ColonDB, same reduced grid~~ (done, see 4.6) | H3 | – | Nov 1 |
 | 4 | PolypGen and FAR: DACS, MinEnt+MMD, FDA + control, λ=0.5, 5 checkpoints (done, see 4.7 and 4.8; PolypGen extended to λ 0.1/1 after seeing λ=0.5) | H3, false positives on normal images | ≈ 5 h GPU | Nov 1–2 |
 | 5 | ~~Small-component post-processing (nnU-Net style, minimum area fixed in advance) on the deployed models~~ (done, see 4.9) | Cuts false positives on normal images | ≈ 2 h GPU inference | Nov 2 |
-| 6 | λ sensitivity and training-step curves for the best methods; small-polyp Dice per method | Analysis | CPU | Nov 4 |
-| 7 | Qualitative figures: predictions before and after adaptation on each target, including failures | Report | CPU | Nov 4 |
+| 6 | ~~λ sensitivity and training-step curves for the best methods; small-polyp Dice per method~~ (done, see 4.10) | Analysis | CPU | Nov 2 |
+| 7 | ~~Qualitative figures: predictions before and after adaptation on each target, including failures~~ (done, see 4.11) | Report | GPU inference, minutes | Nov 2 |
 | 8 | Optional: source-side style augmentation in the spirit of ConStyX, only if time allows (needs 6 new source runs) | Better start point | ≈ 1 day GPU | optional |
 | 9 | Write-up: method, results, limitations; the earlier 18 attempts move to an appendix ([失败方法记录.md](失败方法记录.md)) | Report | – | Nov 5–7 |
 
