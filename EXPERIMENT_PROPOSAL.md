@@ -157,9 +157,46 @@ Transductive setting, 380 images without video IDs, so the bootstrap is over ima
 
 **Summary across the three targets (gain over SourceOnly, interval excludes zero):** DACS and MinEnt+MMD on 3/3; FDA on 2/3 (ETIS, ColonDB; not ClinicDB); MinEnt on 2/3 (borderline on ETIS); MMD on 2/3; DANN on 1/3.
 
+### 4.7 FAR reduced grid (λ=0.5, checkpoints every 400 steps, 6 trajectories per method)
+
+Adaptation images include the 7,749 healthy images. FAR was used for method development before 2026-11-01. Normal FPR = share of healthy images with any predicted polyp pixel ([results/benchmark/far/paired.md](results/benchmark/far/paired.md)).
+
+| Method | Deployed Dice | Normal FPR | Gain vs control [95% CI] | Better than control | Gain vs SourceOnly [95% CI] |
+|---|---:|---:|---|---:|---|
+| DACS | 0.565 | **45.0%** | +0.079 [+0.045, +0.124] | 6/6 | +0.063 [+0.036, +0.092] |
+| FDA | 0.563 | 54.4% | +0.066 [+0.024, +0.116] | 6/6 | +0.050 [+0.020, +0.084] |
+| MinEnt+MMD | 0.542 | 65.2% | +0.054 [+0.021, +0.095] | 6/6 | +0.038 [+0.011, +0.065] |
+| SourceOnly | 0.510 | 56.5% | – | – | 0 |
+| Continue (control) | 0.492 | 73.7% | 0 | – | −0.016 |
+| AdaBN | 0.426 | 90.6% | −0.065 | 0/6 | −0.081 |
+
+- All three methods beat both references in 6/6 trajectories, with intervals excluding zero.
+- **DACS improves Dice and lowers normal-image FPR by 11.5 points.** FDA keeps FPR at the SourceOnly level. MinEnt+MMD raises it by 8.7 points, which the decision rule classes as a trade-off.
+- Continued training and AdaBN raise FPR sharply (73.7%, 90.6%).
+- Global Source-Risk on the merged pool picks a control checkpoint (0.539, FPR 65.6%; Oracle 0.592, FDA).
+
+### 4.8 PolypGen (λ 0.1/0.5/1, checkpoints every 400 steps, 18 trajectories per method)
+
+Adaptation images include the 1,755 normal images; bootstrap over centre/sequence groups. λ=0.5 was pre-specified; λ 0.1 and 1 were added after seeing it (recorded in the protocol). The λ=0.5-only table, [paired_lam0.5.md](results/benchmark/polypgen/paired_lam0.5.md), leads to the same conclusions.
+
+| Method | Deployed Dice | Normal FPR | Gain vs control [95% CI] | Better than control | Gain vs SourceOnly [95% CI] |
+|---|---:|---:|---|---:|---|
+| FDA | 0.611 | 37.1% | +0.025 [−0.003, +0.058] | 14/18 | +0.037 [+0.015, +0.061] |
+| MinEnt+MMD | 0.603 | 39.7% | +0.014 [−0.010, +0.046] | 12/18 | +0.026 [+0.011, +0.043] |
+| DACS | 0.599 | 36.8% | +0.011 [−0.007, +0.030] | 12/18 | +0.023 [−0.009, +0.048] |
+| Continue (control) | 0.592 | 79.1% | 0 | – | +0.012 |
+| SourceOnly | 0.573 | 24.7% | −0.012 | – | 0 |
+| AdaBN | 0.469 | 82.2% | −0.106 | 0/6 | −0.094 |
+
+- **Smallest gains of all targets.** Small gains over SourceOnly; all intervals against the control include zero. PolypGen starts from a higher baseline and is closer to the source.
+- **Continued training raises normal-image FPR from 24.7% to 79.1%**; all three methods remove most of that.
+- **λ controls false positives.** DACS at λ 0.1/0.5/1: FPR 60.2%/25.5%/24.7%, Dice 0.590/0.601/0.606, so at λ≥0.5 DACS matches SourceOnly's FPR with higher Dice. MinEnt+MMD behaves the same way (52.1%/34.0%/32.9%); FDA does not (35.3%–39.7%).
+
+**Summary over five targets (gain over SourceOnly, interval excludes zero):** MinEnt+MMD 5/5; DACS 4/5 (not PolypGen); FDA 4/5 (not ClinicDB). DACS is first on ClinicDB, ColonDB and FAR; MinEnt+MMD is in the top three on every target.
+
 ## 5. In progress
 
-Nothing running (ColonDB finished 2026-11-01 22:02).
+Nothing running (PolypGen extension finished 2026-11-02 03:26).
 
 ## 6. Remaining work
 
@@ -168,7 +205,7 @@ Nothing running (ColonDB finished 2026-11-01 22:02).
 | 1 | ~~Paired report for MinEnt+MMD and DACS on ClinicDB~~ (done, see 4.3) | H2 | – | Nov 1 |
 | 2 | ~~ETIS results and paired report~~ (done, see 4.5) | H3 | – | Nov 1 |
 | 3 | ~~ColonDB, same reduced grid~~ (done, see 4.6) | H3 | – | Nov 1 |
-| 4 | PolypGen and FAR. Grid reduced to the best 2–3 methods, λ=0.5, 5 checkpoints; written into the protocol before running | H3, false positives on normal images | ≈ 6–8 h GPU | Nov 3 |
+| 4 | PolypGen and FAR: DACS, MinEnt+MMD, FDA + control, λ=0.5, 5 checkpoints (done, see 4.7 and 4.8; PolypGen extended to λ 0.1/1 after seeing λ=0.5) | H3, false positives on normal images | ≈ 5 h GPU | Nov 1–2 |
 | 5 | Small-component post-processing (nnU-Net style, minimum area fixed in advance) on the deployed models | Cuts false positives on normal images | minutes per model | Nov 3 |
 | 6 | λ sensitivity and training-step curves for the best methods; small-polyp Dice per method | Analysis | CPU | Nov 4 |
 | 7 | Qualitative figures: predictions before and after adaptation on each target, including failures | Report | CPU | Nov 4 |
