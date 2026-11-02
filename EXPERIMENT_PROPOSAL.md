@@ -194,9 +194,26 @@ Adaptation images include the 1,755 normal images; bootstrap over centre/sequenc
 
 **Summary over five targets (gain over SourceOnly, interval excludes zero):** MinEnt+MMD 5/5; DACS 4/5 (not PolypGen); FDA 4/5 (not ClinicDB). DACS is first on ClinicDB, ColonDB and FAR; MinEnt+MMD is in the top three on every target.
 
+### 4.9 Small-component post-processing (all five targets)
+
+Rule fixed in the protocol before any post-processed prediction: remove 8-connected predicted components below 0.1% of the native image (primary; the existing area-FPR threshold) or 0.41% (sensitivity; smallest main polyp component in the 800 source training masks). Applied to every deployed pick of SourceOnly, control, DACS, MinEnt+MMD and FDA. Helpful if normal FPR falls by at least 5 points and Dice by at most 0.01 on PolypGen and FAR. Table: `results/benchmark/postprocessing.md`.
+
+| Method | PolypGen FPR raw → 0.1% → 0.41% | PolypGen ΔDice (0.1%) | FAR FPR raw → 0.1% → 0.41% | FAR ΔDice (0.1%) |
+|---|---|---:|---|---:|
+| DACS | 36.8% → 32.2% → 27.8% | +0.015 | 45.0% → 38.0% → 31.4% | +0.000 |
+| MinEnt+MMD | 39.7% → 35.1% → 29.9% | +0.005 | 65.2% → 58.7% → 51.0% | +0.000 |
+| FDA | 37.1% → 32.2% → 26.6% | +0.005 | 54.4% → 48.2% → 41.3% | +0.000 |
+| Control | 79.1% → 73.9% → 67.3% | +0.008 | 73.7% → 68.5% → 62.7% | +0.001 |
+| SourceOnly | 24.7% → 21.4% → 17.7% | +0.006 | 56.5% → 51.3% → 45.0% | −0.000 |
+
+- **Primary threshold narrowly misses the pre-set rule.** FAR: FPR falls 5.1–6.9 points (group-weighted, all intervals exclude zero), which passes. PolypGen: the three methods fall only 4.4–4.8 points, just under 5.
+- **No Dice cost.** Dice changes by at most ±0.001 on ClinicDB, ETIS, ColonDB and FAR. On PolypGen it rises by 0.005–0.015, mostly on small polyps (DACS small-polyp Dice 0.364 → 0.415), so small blobs there are mostly false detections.
+- **Sensitivity threshold (0.41%)** cuts FPR by 6.9–14.0 points on both targets with Dice change −0.007 to +0.019 and would pass. Switching to it after seeing results would be post hoc, so it is reported as sensitivity only.
+- **Post-processing does not change the ranking or replace adaptation.** The control still flags 68–74% of normal images; most false positives are components larger than 0.1% of the image.
+
 ## 5. In progress
 
-Nothing running (PolypGen extension finished 2026-11-02 03:26).
+Nothing running (post-processing finished 2026-11-02).
 
 ## 6. Remaining work
 
@@ -206,7 +223,7 @@ Nothing running (PolypGen extension finished 2026-11-02 03:26).
 | 2 | ~~ETIS results and paired report~~ (done, see 4.5) | H3 | – | Nov 1 |
 | 3 | ~~ColonDB, same reduced grid~~ (done, see 4.6) | H3 | – | Nov 1 |
 | 4 | PolypGen and FAR: DACS, MinEnt+MMD, FDA + control, λ=0.5, 5 checkpoints (done, see 4.7 and 4.8; PolypGen extended to λ 0.1/1 after seeing λ=0.5) | H3, false positives on normal images | ≈ 5 h GPU | Nov 1–2 |
-| 5 | Small-component post-processing (nnU-Net style, minimum area fixed in advance) on the deployed models | Cuts false positives on normal images | minutes per model | Nov 3 |
+| 5 | ~~Small-component post-processing (nnU-Net style, minimum area fixed in advance) on the deployed models~~ (done, see 4.9) | Cuts false positives on normal images | ≈ 2 h GPU inference | Nov 2 |
 | 6 | λ sensitivity and training-step curves for the best methods; small-polyp Dice per method | Analysis | CPU | Nov 4 |
 | 7 | Qualitative figures: predictions before and after adaptation on each target, including failures | Report | CPU | Nov 4 |
 | 8 | Optional: source-side style augmentation in the spirit of ConStyX, only if time allows (needs 6 new source runs) | Better start point | ≈ 1 day GPU | optional |

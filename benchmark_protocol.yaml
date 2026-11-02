@@ -54,6 +54,19 @@ methods:
   # and 1 with the same methods and every=400, to match the 18 trajectories of other targets.
   # Both the lam=0.5-only table (pre-specified) and the 3-lambda table are reported.
   polypgen_extension: {methods: [dacs, minent_mmd, fda], lams: [0.1, 1.0], every: 400}
+
+# Fixed 2026-11-02 before any post-processed prediction was computed (benchmark/postprocess.py).
+# Rule fixed from source data and the existing fpr_area definition, never from target labels.
+# Source training masks: smallest per-image largest polyp component = 0.41% of the image.
+postprocessing:
+  rule: remove 8-connected predicted components smaller than min_area x native image area
+  min_area_primary: 0.001        # = fpr_area threshold above; below every source polyp
+  min_area_sensitivity: 0.0041   # smallest main polyp component in the 800 source masks
+  models: Source-Risk pick of every trajectory (source_only, continue, dacs, minent_mmd, fda)
+  scenarios: [clinicdb, etis, colondb, polypgen, far]
+  report: change in Dice, small-polyp Dice and normal-image FPR (any pixel); bootstrap over
+          base runs and image groups as in report.py
+  helpful_if: normal FPR falls by >= 5 points and Dice falls by <= 0.01 on PolypGen and FAR
 evaluation_default: [score, analyze, report]   # extra feature validators and ensembles optional
 
 metrics:
