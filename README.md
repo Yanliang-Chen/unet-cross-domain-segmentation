@@ -33,7 +33,7 @@
 | [项目总览与实验设计.md](项目总览与实验设计.md) | 研究问题、数据、方法、评价、全部结果、剩余工作、局限、参考文献（报告格式） |
 | [EXPERIMENT_PROPOSAL.md](EXPERIMENT_PROPOSAL.md) | 英文实验方案：假设、已完成、待做与判定规则 |
 | [benchmark_protocol.yaml](benchmark_protocol.yaml) | 事前固定的场景、方法、部署规则、指标与验证器设置 |
-| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）和配对收益表（`paired.md`） |
+| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、后处理与曲线表、`figures/` 中的全部图 |
 | [每日进度.md](每日进度.md) | 每天的完成情况和下一步 |
 | [失败方法记录.md](失败方法记录.md) | 2026-10-31 之前 18 类未达目标的尝试（报告附录） |
 
@@ -55,11 +55,13 @@
 | `bash benchmark/run_scenario.sh <场景> <方法...>` | 一个场景的对照、适应、打分与分析全流程（环境变量 `LAMS`、`EVERY` 可选） |
 | `python -m benchmark.extra --pool <池>` | 可选：瓶颈特征、CMR-TTD、MixVal 等第二轮验证器 |
 
-方法实现集中在 [benchmark/uda.py](benchmark/uda.py)（AdaBN、MinEnt、AdvEnt、DANN、MMD、BNM、MCC、Mean Teacher、FDA、MinEnt+MMD、DACS、继续训练对照），验证器在 [benchmark/validators.py](benchmark/validators.py)。`scripts/` 和根目录下的其余协议文件属于早期工作，保留以便追溯。
+方法实现集中在 [benchmark/uda.py](benchmark/uda.py)（AdaBN、MinEnt、AdvEnt、DANN、MMD、BNM、MCC、Mean Teacher、FDA、MinEnt+MMD、DACS、继续训练对照），验证器在 [benchmark/validators.py](benchmark/validators.py)。源模型训练与数据准备在根目录和 `scripts/`：`prepare_polyp_data.py` 划分 Kvasir/ClinicDB，`run_matrix.py` 按 `protocol.yaml` 训练 6 条源轨迹，`check_protocol.py` 校验划分。
 
 ## 环境
 
-训练和评价在 Windows + CUDA 上运行（RTX 5070）。仓库不包含医学数据、权重或缓存；检查点和逐图分数在被 Git 忽略的 `runs/`，写报告需要的汇总表由 `benchmark.report` 复制到 `results/benchmark/`。
+训练和评价在 Windows + CUDA 上运行（RTX 5070）。仓库不包含数据集、权重或缓存；检查点和逐图分数在被 Git 忽略的 `runs/`，写报告需要的汇总表和图在 `results/benchmark/`。
+
+数据依赖：`benchmark/data.py` 还读取两份早期工作生成、只在本机的划分文件——PolypGen 正常图的留出集 `runs/real/negative_context/split.json` 和 FAR 的患者分组 `runs/real/far_confirmatory/freeze.json`。生成它们的代码已删除，可在 Git 历史中找到。
 
 新 Windows 环境：
 

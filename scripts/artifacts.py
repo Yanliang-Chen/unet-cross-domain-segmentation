@@ -1,11 +1,7 @@
-"""Small artifact helpers shared by the retained pipelines."""
+"""Small artifact helpers shared by source training and adaptation."""
 import json
 from pathlib import Path
 import torch
-
-
-def read_json(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
 def write_json(path, data):
