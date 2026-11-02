@@ -49,6 +49,11 @@ methods:
   # Extra reported metric: normal-image FPR of each deployed pick (Dice/FPR trade-off).
   # FAR was used for method development before 2026-11-01; its result is reported with that caveat.
   reduced_grid: {scenarios: [polypgen, far], methods: [dacs, minent_mmd, fda, continue], lams: [0.5], every: 400}
+  # Added 2026-11-02 ~01:30, AFTER the PolypGen lam=0.5 results were seen (all three gains vs
+  # control had intervals including zero, 6 trajectories each): PolypGen extended to lams 0.1
+  # and 1 with the same methods and every=400, to match the 18 trajectories of other targets.
+  # Both the lam=0.5-only table (pre-specified) and the 3-lambda table are reported.
+  polypgen_extension: {methods: [dacs, minent_mmd, fda], lams: [0.1, 1.0], every: 400}
 evaluation_default: [score, analyze, report]   # extra feature validators and ensembles optional
 
 metrics:
