@@ -266,15 +266,18 @@ Script `benchmark/curves.py`; table `results/benchmark/curves.md`; figures `resu
 
 ### 4.12 Summary figures
 
-`benchmark/summary_figures.py` reads only tables already in git.
+`benchmark/summary_figures.py` reads only tables already in git. An open marker means the interval includes zero.
 
-- **`figures/gains.png`:** paired gain with 95% interval over SourceOnly and over the control, for each method on each target. An open marker means the interval includes zero.
-  - Over the control, every method is positive on ClinicDB, ETIS, ColonDB and FAR. ClinicDB FDA is the one exception, with an interval that includes zero.
-  - PolypGen is the only target where all three methods' intervals include zero.
-  - The control's interval against SourceOnly includes zero on every target except PolypGen (+0.027 [+0.009, +0.044]).
-- **`figures/dice_fpr.png`:** deployed Dice against normal-image FPR on PolypGen and FAR. Small dots are single trajectories; large markers are method means.
+- **`figures/gains.png`:** paired gain with 95% interval for each method on each target, in three panels:
+  - over SourceOnly (the control and source-only continuation are included);
+  - over the control;
+  - over source-only continuation.
+- **`figures/controls.png`:** the control taken apart: the effect of target images in BatchNorm, and the effect of more source training, on Dice and normal FPR.
+- **`figures/ablation.png`:** DACS minus DACS without the paste, on all five targets: Dice, small-polyp Dice and normal FPR.
+- **`figures/holdout.png`:** the frozen-rule test on PolypDB Hanoi.
+- **`figures/dice_fpr.png`:** deployed Dice against normal-image FPR on PolypGen and FAR, with source-only continuation added.
   - FAR: DACS sits top-left, with the highest Dice and the lowest FPR.
-  - On both targets the control sits far right, at 74–79% FPR.
+  - On both targets the control sits far right, at 74–79% FPR; source-only continuation sits near SourceOnly.
   - PolypGen: all three methods beat SourceOnly on Dice but have 12–15 points more FPR.
 
 ### 4.13 Amendment v2 (2026-11-13): corrected metrics, H2, endpoints, selection, deployment

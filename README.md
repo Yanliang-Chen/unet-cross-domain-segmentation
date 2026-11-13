@@ -6,27 +6,45 @@
 
 ## 当前结果（2026-11-13，协议修正 v2）
 
-部署 Dice（阳性图；6 条源轨迹 × 3 个 λ，FAR 只用 λ=0.5；每条轨迹按源验证选检查点）：
+部署 Dice（阳性图，每条轨迹按源验证选检查点，6 条源轨迹的均值；括号内为正常图误报）：
 
-| 方法 | ClinicDB | ETIS | ColonDB | PolypGen（正常图误报） | FAR（正常图误报） |
-|---|---:|---:|---:|---:|---:|
-| DACS 式跨域粘贴（分割专用） | **0.686** | 0.403 | **0.609** | 0.617（37%） | **0.565**（45%） |
-| MinEnt+MMD（分割专用） | 0.670 | 0.412 | 0.568 | 0.615（40%） | 0.542（65%） |
-| FDA | 0.650 | **0.430** | 0.508 | **0.629**（37%） | 0.563（54%） |
-| MinEnt | 0.664 | 0.393 | 0.534 | – | – |
-| MMD | 0.658 | 0.388 | 0.541 | – | – |
-| 继续训练对照 | 0.637 | 0.338 | 0.435 | 0.615（79%） | 0.492（74%） |
-| SourceOnly | 0.610 | 0.366 | 0.444 | 0.582（25%） | 0.510（57%） |
+| 方法 | ClinicDB | ETIS | ColonDB | PolypGen | FAR | PolypDB 河内（留出） |
+|---|---:|---:|---:|---:|---:|---:|
+| DACS | 0.686 | 0.403 | 0.609 | 0.617（37%） | 0.565（45%） | 0.788 ¹ |
+| DACS 去掉粘贴（λ=0.5） | 0.700 | 0.431 | 0.580 | 0.624（16%） | 0.570（36%） | 0.790 |
+| MinEnt+MMD | 0.670 | 0.412 | 0.568 | 0.615（40%） | 0.542（65%） | – |
+| FDA | 0.650 | 0.430 | 0.508 | 0.629（37%） | 0.563（54%） | – |
+| MinEnt | 0.664 | 0.393 | 0.534 | – | – | – |
+| MMD | 0.658 | 0.388 | 0.541 | – | – | – |
+| 纯源域继续训练（不用目标数据） | 0.654 | 0.379 | 0.514 | 0.601（27%） | 0.533（54%） | 0.774 |
+| 继续训练对照（目标图进入 BatchNorm） | 0.637 | 0.338 | 0.435 | 0.615（79%） | 0.492（74%） | – |
+| SourceOnly | 0.610 | 0.366 | 0.444 | 0.582（25%） | 0.510（57%） | 0.751 |
 
-- 相对 SourceOnly 区间不含零：DACS、MinEnt+MMD 5/5，FDA 4/5。相对继续训练对照：ClinicDB、ETIS、ColonDB、FAR 上大多不含零，PolypGen 上都含零（证据不足）。
-- 与事前指定的单一方法直接比较时，DACS、MinEnt+MMD 只在 ColonDB 上全部胜出：组合方法“更好”只有均值支持。
-- 同时提高 Dice 并降低正常图误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。
-- 小连通域后处理（删除小于图像 0.1% 的预测块，事前固定）不改变 Dice，正常图误报 FAR 降 5–7 个百分点、PolypGen 降 4–5 个百分点。
-- 继续训练对照偏弱：目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降，正常图误报 PolypGen +51、FAR +19 个百分点）。换成不用目标数据的纯源域继续训练后，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
-- DACS 消融（五个目标，λ=0.5）：跨域粘贴只在 ColonDB 上提高 Dice（+0.044），其余 4 个目标上没有帮助，且在 PolypGen、FAR 上增加正常图误报约 8–9 个百分点；主要起作用的是 EMA 教师的硬伪标签自训练。
-- **独立确认：** 事前冻结的规则（DACS λ=1、按源验证选检查点）在从未使用的 PolypDB 河内中心（1,000 张，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6 条轨迹。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
-- 无标签选模：在 9 个全覆盖验证器中源验证在 4/5 个目标上损失最小，但跨方法全局选模常选中对照检查点；按方法固定、只在轨迹内选检查点更可靠。
-- v2 修正了 PolypGen 125 张空掩码图被算作阳性和小息肉的问题，见 [results/benchmark/metric_correction.md](results/benchmark/metric_correction.md)。
+方法行对 λ 0.1 / 0.5 / 1 取平均（FAR 只有 λ=0.5）；“DACS 去掉粘贴”只有 λ=0.5，不能与平均值直接比大小。¹ 留出集上是事前冻结的部署规则 DACS λ=1。PolypGen 只算掩码非空的 1,412 张图（v2 修正，见 [metric_correction.md](results/benchmark/metric_correction.md)）。
+
+- **相对 SourceOnly：** DACS、MinEnt+MMD 在 5/5 个目标上区间不含零，FDA 4/5。
+- **对照偏弱：** 继续训练对照里，目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降；正常图误报 PolypGen +51、FAR +19 个百分点）。相对不用目标数据的纯源域继续训练，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
+- **组合方法：** 与事前指定的单一方法直接比较，DACS、MinEnt+MMD 只在 ColonDB 上全部胜出；“组合更好”只有均值支持。
+- **DACS 消融：** 跨域粘贴只在 ColonDB 上提高 Dice（+0.044），其余 4 个目标上没有帮助，并在 PolypGen、FAR 上增加正常图误报 8–9 个百分点；主要起作用的是 EMA 教师的硬伪标签自训练。
+- **正常图误报：** 同时提高 Dice 并降低误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。小连通域后处理（事前固定）不改变 Dice，误报 FAR 降 5–7、PolypGen 降 4–5 个百分点。
+- **独立确认：** 事前冻结的规则在从未使用的 PolypDB 河内中心（1,000 张，256 名患者，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6；相对纯源域继续训练 +0.012 [+0.003, +0.022]。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
+- **无标签选模：** 方法固定时，按源验证在轨迹内选检查点损失小（0.003–0.032）；跨方法全局选模常选中对照检查点，不可靠。
+
+### 图
+
+| 图 | 内容 |
+|---|---|
+| [gains.png](results/benchmark/figures/gains.png) | 各方法在五个目标上相对 SourceOnly、继续训练对照、纯源域继续训练的配对收益与 95% 区间 |
+| [controls.png](results/benchmark/figures/controls.png) | 对照拆解：目标图进入 BatchNorm 的影响与多训练源域的影响（Dice、正常图误报） |
+| [ablation.png](results/benchmark/figures/ablation.png) | DACS 去掉跨域粘贴的消融（Dice、小息肉 Dice、正常图误报） |
+| [holdout.png](results/benchmark/figures/holdout.png) | PolypDB 河内留出集上的事前冻结检验 |
+| [dice_fpr.png](results/benchmark/figures/dice_fpr.png) | PolypGen、FAR 上部署 Dice 与正常图误报 |
+| [lambda.png](results/benchmark/figures/lambda.png)、[step_curves.png](results/benchmark/figures/step_curves.png)、[step_fpr.png](results/benchmark/figures/step_fpr.png) | λ 敏感性与训练步数曲线 |
+| `qualitative_<目标>.png` | 按固定规则选图的定性例子（[选图清单](results/benchmark/qualitative.md)） |
+
+![各目标的配对收益](results/benchmark/figures/gains.png)
+
+![PolypDB 河内留出集](results/benchmark/figures/holdout.png)
 
 完整设计、结果与局限见[项目总览与实验设计](项目总览与实验设计.md)。
 
@@ -57,7 +75,7 @@
 | `python -m benchmark.report --scenario <场景>` | 写入 `results/benchmark/<场景>/` 的配对收益表 |
 | `python -m benchmark.postprocess` | 部署模型的小连通域后处理（`results/benchmark/postprocessing.md`） |
 | `python -m benchmark.curves` | λ、训练步数曲线与小息肉 Dice（只读 `candidates.csv`，写 `results/benchmark/curves.md` 与 `figures/`） |
-| `python -m benchmark.summary_figures` | 汇总图：各目标收益与区间、PolypGen/FAR 的 Dice–误报散点（`results/benchmark/figures/`） |
+| `python -m benchmark.summary_figures` | 汇总图：`gains`、`controls`、`ablation`、`holdout`、`dice_fpr`（`results/benchmark/figures/`） |
 | `python -m benchmark.compare` | 协议 v2：H2 直接比较、完整终点、事后部署规则、纯源域继续训练对照与 DACS 消融（`h2.md`、`endpoints.md`、`deployment.md`、`controls.md`、`ablations.md`） |
 | `python -m benchmark.selection` | 协议 v2：统一选模表（先运行 `benchmark.analyze` 的 `v2_source_only` 与 `v2_all`） |
 | `python -m benchmark.holdout` | 第 3 阶段：PolypDB 河内留出集的一次性评价（`holdout_polypdb.md`；数据需放在 `data/PolypDB/`） |
