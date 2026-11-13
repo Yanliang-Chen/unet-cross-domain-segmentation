@@ -3,24 +3,24 @@ every method over the continued-training control and over SourceOnly.
 
 Usage:
   python -m benchmark.report --scenario clinicdb
-Writes results/benchmark/<scenario>/{candidates.csv, paired.md} and copies the selection
-analyses runs/benchmark/analysis/<scenario>_{full,methods}.md next to them.
+Writes results/benchmark/<scenario>/{candidates.csv, paired.md}.
 """
 import argparse
 import csv
 import re
-import shutil
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
 
-from benchmark.analyze import OUT, VALIDATORS, load_pools
+from benchmark.analyze import VALIDATORS, load_pools
 
 RESULTS = Path("results/benchmark")
 POOLS = ("source_only", "uda_adabn", "uda_minent", "uda_advent", "uda_dann", "uda_mmd", "uda_bnm",
-         "uda_mcc", "uda_meanteacher", "uda_fda", "uda_minent_mmd", "uda_dacs", "uda_continue")
-METRICS = ("dice", "group_dice", "iou", "small_dice", "fpr_any", "fpr_area", "auroc")
+         "uda_mcc", "uda_meanteacher", "uda_fda", "uda_minent_mmd", "uda_dacs", "uda_continue",
+         "uda_continue_source", "uda_dacs_nopaste", "uda_dacs_noweight")
+METRICS = ("dice", "group_dice", "iou", "small_dice", "fpr_any", "fpr_area", "empty_fpr", "auroc")
 BOOTSTRAP, SEED = 2000, 20261101
+LATE = ("continue_source", "dacs_nopaste", "dacs_noweight")
 
 
 def base_run(row):
@@ -54,7 +54,9 @@ def paired(rows, units):
     labels, inverse = np.unique(units, return_inverse=True) if units.size and all(units) else \
         (np.arange(len(units)), np.arange(len(units)))
     rng, table = np.random.default_rng(SEED), []
-    for algorithm in sorted({a for a, _, _ in picks}):
+    # phase-2 algorithms go last so the shared random stream, and the published intervals of
+    # every earlier algorithm, stay unchanged
+    for algorithm in sorted({a for a, _, _ in picks}, key=lambda a: (a in LATE, a)):
         keys = [k for k in picks if k[0] == algorithm]
         runs = sorted({b for _, b, _ in keys})
         row = {"algorithm": algorithm, "n": len(keys),
@@ -99,10 +101,6 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     write_candidates(rows, out/"candidates.csv")
     (out/"paired.md").write_text(markdown_paired(paired(rows, units[args.scenario]), args.scenario), encoding="utf-8")
-    for name in ("full", "methods"):
-        src = OUT/f"{args.scenario}_{name}.md"
-        if src.exists():
-            shutil.copy(src, out/src.name)
     print("wrote", out)
 
 

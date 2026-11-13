@@ -198,11 +198,12 @@ def lambda_figure(data, path):
 
 def small_counts():
     try:
+        from benchmark.analyze import image_sets
         from benchmark.score import SCORES
         out = {}
         for s in TARGETS:
             meta = np.load(SCORES/f"meta_{s}.npz")
-            out[s] = int(((meta["kind"] == "polyp") & (meta["gt_fraction"] < 0.02)).sum())
+            out[s] = int(image_sets(meta, np.ones(len(meta["kind"]), bool))["small"].sum())
         return out
     except (OSError, ImportError):
         return {}

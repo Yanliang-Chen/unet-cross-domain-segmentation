@@ -15,7 +15,7 @@ import torch
 from scipy import ndimage
 from torch.nn import functional as F
 
-from benchmark.analyze import SMALL, load_pools
+from benchmark.analyze import image_sets, load_pools
 from benchmark.data import build_cache
 from benchmark.report import BOOTSTRAP, RESULTS, SEED, trajectories
 from benchmark.score import BATCH, REGISTRY, SCORES, load_models, predict
@@ -91,8 +91,8 @@ def scenario_table(scenario, rows, registry, device, rng):
     cache = build_cache(scenario)
     meta = np.load(SCORES/f"meta_{scenario}.npz")
     test = np.array([r["role"] in ("test", "both") for r in cache["rows"]])
-    polyp, normal = test & (meta["kind"] == "polyp"), test & (meta["kind"] == "normal")
-    small = polyp & (meta["gt_fraction"] < SMALL)
+    sets = image_sets(meta, test)
+    polyp, small, normal = sets["polyp"], sets["small"], sets["normal"]
     picks = {k: max(v, key=lambda r: r["validators"]["source_risk"]) for k, v in trajectories(rows).items()}
     cache["gpu_images"] = cache["images"].to(device)
     cache["masks"] = [m.numpy() if m is not None else None for m in cache["masks"]]

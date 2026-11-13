@@ -109,3 +109,64 @@ statistics:
   correlation: [spearman, kendall]
   bootstrap: {replicates: 2000, seed: 20261031, unit: group_where_available_else_image}
 decision: report_all_validators_algorithms_seeds_no_post_hoc_removal
+
+# ---------------------------------------------------------------------------------------------
+# Amendment v2, fixed 2026-11-13 BEFORE any v2 number was computed. Prompted by an outside
+# review; the only v2 quantity seen beforehand is a plain recount of PolypGen empty masks
+# (125 of 1,537 polyp-set images, all of them counted as "small" under v1).
+amendment_v2:
+  metrics:
+    polyp_images: kind polyp AND GT area > 0   # Dice, IoU, group Dice, AUROC positives, bootstrap units
+    small_polyp: 0 < GT area < 0.02
+    empty_mask_fpr: share of polyp-set images with an empty GT that get any predicted pixel; reported
+                    separately (PolypGen only), never mixed into Dice or normal FPR
+    v1_numbers: kept in git history; changed PolypGen numbers listed in results/benchmark/metric_correction.md
+  wording: an interval that includes zero is "not enough evidence", never "not worse" / "no difference"
+  h2_direct:
+    comparisons: {minent_mmd: [minent, mmd], dacs: [minent, mmd, fda]}
+    targets: [clinicdb, etis, colondb]          # targets where every named method was run
+    statistic: same pairing as report.py (same base run and lambda, per-group Dice difference,
+               joint bootstrap over base runs and groups, 2000 draws, seed 20261101)
+    supported_if: for a method, gain > 0 with interval excluding zero against every named comparator
+                  on at least 2 of 3 targets; otherwise "means support, direct comparison inconclusive"
+  endpoints:
+    reference: same base run's SourceOnly pick (paired as above)
+    measures: [positive_dice, small_polyp_dice, fpr_any, fpr_area, empty_mask_fpr]
+    verdict: {dice_better: Dice interval above 0, fpr_lower: fpr_any interval below 0,
+              both: dice_better and fpr_lower, trade_off: one better and the other's interval on the worse side,
+              not_enough_evidence: otherwise}   # FPR parts only on targets with normal images
+  selection_table: one row per scored candidate pool and target; columns = methods, candidates,
+                   validators scored for every candidate, Oracle Dice, Source-Risk pick Dice and loss,
+                   best other validator and loss. Replaces the v1 statements tied to the 1,860-candidate pool.
+  deployment_rule:   # labelled post hoc: every target had been seen when this was written
+    method_and_lambda: (method, lambda) in {dacs, minent_mmd, fda} x {0.1, 0.5, 1} with the highest mean
+                       deployed positive Dice on ClinicDB only; applied unchanged to the other targets
+                       (FAR has lambda 0.5 only and is reported at 0.5 with that note)
+    checkpoint: Source-Risk pick within each trajectory
+    single_model: among the 6 base runs' picks, the one with the highest Source-Risk; reported with the
+                  6-run mean and range
+  planned_runs:      # phase 2-3; specified now, run later
+    source_only_continue: 6 base runs x 2000 steps, source batches only (no target forward), lr 1e-4,
+                          checkpoint every 200; scored on all five targets
+    dacs_ablations: {no_paste: teacher pseudo-label loss on unmixed target images, no_confidence_weight: weight 1}
+    minent_mmd_balance: MMD weight x0.25 and x4 with entropy weight fixed
+    ablation_setting: {targets: [clinicdb, polypgen], lam: 0.5, every: 400}
+    holdout: CVC-300 (60 images, never used), evaluated once with a rule frozen in a commit before running
+  # Phase-2 scope fixed 2026-11-13, after phase 1 and BEFORE any phase-2 run:
+  # - dacs_ablations move to ClinicDB (best DACS Dice) and FAR (only target where DACS improves both
+  #   Dice and normal FPR); PolypGen dropped. Checkpoint spacing matches the existing DACS runs
+  #   there (ClinicDB every 200, FAR every 400) so picks are comparable; lam 0.5 only.
+  # - minent_mmd_balance dropped: H2 direct comparison was inconclusive (phase 1), so there is no
+  #   combination gain to explain; GPU time goes to the CVC-300 holdout instead.
+  # - source_only_continue (algorithm continue_source) is trained once per base run (it never sees
+  #   target data), checkpoint every 200, and scored on all five targets. It reuses the control's
+  #   source batch sequence (same loader and augmentation seeds), so it differs from the control
+  #   only in not forwarding target images.
+  # - Comparisons (benchmark/compare.py, same pairing): continue vs continue_source (effect of target
+  #   images in BatchNorm), continue_source vs SourceOnly (effect of more source training), each method
+  #   vs continue_source; dacs vs dacs_nopaste and dacs vs dacs_noweight at lam 0.5 (Dice, small Dice,
+  #   normal FPR on FAR).
+  phase2:
+    source_only_continue: {algorithm: continue_source, runs: 6, steps: 2000, every: 200, scored_on: [clinicdb, etis, colondb, polypgen, far]}
+    dacs_ablations: {variants: [dacs_nopaste, dacs_noweight], targets: [clinicdb, far], lam: 0.5, every: {clinicdb: 200, far: 400}}
+    dropped: [minent_mmd_balance]

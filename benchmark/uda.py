@@ -35,9 +35,14 @@ ALGORITHMS = ("minent", "advent", "dann", "mmd", "bnm", "mcc", "meanteacher", "f
 METHODS = ("minent_mmd", "dacs")
 # Matched control: same warm start, steps, batches and joint source+target forward pass
 # (target images still reach BatchNorm), but no target loss term. Run with --lams 0.
-CONTROLS = ("continue",)
+# continue_source (amendment v2, phase 2): the same source batches without the target forward,
+# so target images never reach the network; trained once per run and scored on every target.
+CONTROLS = ("continue", "continue_source")
+# DACS ablations (amendment v2, phase 2): no cross-domain paste (pseudo-label self-training on
+# jittered target images), or no confidence weight (weight 1 outside the paste).
+ABLATIONS = ("dacs_nopaste", "dacs_noweight")
 # loss = source + lam * WEIGHT * term; FDA uses lam to set its band size beta instead
-WEIGHT = {"continue": 0.0, "minent": 1.0, "advent": 0.01, "dann": 0.1, "mmd": 1.0, "bnm": 1.0, "mcc": 1.0,
+WEIGHT = {"continue": 0.0, "continue_source": 0.0, "dacs_nopaste": 1.0, "dacs_noweight": 1.0, "minent": 1.0, "advent": 0.01, "dann": 0.1, "mmd": 1.0, "bnm": 1.0, "mcc": 1.0,
           "meanteacher": 1.0, "minent_mmd": 1.0, "dacs": 1.0}
 DACS_CONFIDENCE = 0.968                 # DACS: per-image share of pixels above this weights the loss
 FDA_BETA = {0.1: 0.01, 0.5: 0.05, 1.0: 0.09}
@@ -63,7 +68,7 @@ def candidate(algorithm, scenario, run, lam, step, checkpoint):
     return {"id": f"{algorithm}_{scenario}_{run}_l{lam:g}_s{step:04d}", "algorithm": algorithm,
             "lam": lam, "augmentation": augmentation, "seed": int(seed), "step": step,
             "run": f"{algorithm}_{run}_l{lam:g}", "checkpoints": [str(checkpoint)],
-            "scenarios": [scenario, "source_val"]}
+            "scenarios": "all" if scenario == "all" else [scenario, "source_val"]}
 
 
 @torch.no_grad()
@@ -167,13 +172,15 @@ def color_jitter(images, generator, strength=0.2):
     return (images*factor(1, 1, 1)*factor(3, 1, 1)).clamp(0, 1)
 
 
-def dacs_batch(x, y, t, teacher, generator):
+def dacs_batch(x, y, t, teacher, generator, paste_source=True, weighted=True):
     """Paste source polyps onto target images; outside them the label is the teacher's
     hard pseudo-label, weighted by the image's share of confident teacher pixels."""
     with torch.no_grad():
         p = teacher(t).sigmoid()
     confident = (torch.maximum(p, 1-p) > DACS_CONFIDENCE).float().mean((1, 2, 3), keepdim=True)
-    paste = (y > 0.5).float()
+    if not weighted:
+        confident = torch.ones_like(confident)
+    paste = (y > 0.5).float() if paste_source else torch.zeros_like(y)
     mixed = color_jitter(paste*x + (1-paste)*t, generator)
     label = paste*y + (1-paste)*(p > 0.5).float()
     weight = paste + (1-paste)*confident
@@ -181,12 +188,14 @@ def dacs_batch(x, y, t, teacher, generator):
 
 
 def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
+    if algorithm == "continue_source":
+        scenario = "all"                      # never sees target data
     folder = OUT/algorithm/scenario/f"{run}_l{lam:g}"
     rows = [candidate(algorithm, scenario, run, lam, s, folder/f"step_{s:04d}.pt")
             for s in range(every, steps+1, every)]
     if all(Path(r["checkpoints"][0]).exists() for r in rows):
         return rows
-    images = target_images(scenario)
+    images = None if scenario == "all" else target_images(scenario)
     source = SegmentationDataset("data/polyp_png", "source_train", 256, 3)
     start = Path("runs/real", run, "checkpoints", "epoch_030.pt")
     cfg = torch.load(start, map_location="cpu", weights_only=True)["config"]
@@ -205,7 +214,7 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
     optimizer = torch.optim.AdamW(list(model.parameters()) + (list(extra.parameters()) if algorithm == "dann" else []),
                                   lr=LR, weight_decay=float(cfg["weight_decay"]))
     d_optimizer = torch.optim.Adam(extra.parameters(), lr=LR, betas=(0.9, 0.99)) if algorithm == "advent" else None
-    teacher = copy.deepcopy(model).eval() if algorithm in ("meanteacher", "dacs") else None
+    teacher = copy.deepcopy(model).eval() if algorithm == "meanteacher" or algorithm.startswith("dacs") else None
     loader = DataLoader(source, batch_size=BATCH, shuffle=True, drop_last=True,
                         generator=torch.Generator().manual_seed(seed+1000))
     geometry = torch.Generator().manual_seed(seed+2000)
@@ -221,13 +230,26 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
             x, y = next(iterator)
         x, y = augment(x, y, cfg["augmentation"], geometry, photometric)
         x, y = x.to(device), y.to(device)
+        if algorithm == "continue_source":
+            loss = bce_dice_loss(model(x), y)
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            optimizer.step()
+            step += 1
+            if step % every == 0:
+                atomic_torch_save({"config": cfg, "model_state_dict": model.state_dict(),
+                                   "source_checkpoint": str(start), "algorithm": algorithm,
+                                   "lam": lam, "step": step}, folder/f"step_{step:04d}.pt")
+            continue
         t = images[torch.randint(len(images), (BATCH,), generator=target_rng)].to(device).float()/255
         if algorithm == "fda":
             x = fda_source_to_target(x, t, FDA_BETA[lam])
             loss = bce_dice_loss(model(x), y)
         else:
-            if algorithm == "dacs":
-                t, mixed_label, mixed_weight = dacs_batch(x, y, t, teacher, pixel_rng)
+            if algorithm.startswith("dacs"):
+                t, mixed_label, mixed_weight = dacs_batch(x, y, t, teacher, pixel_rng,
+                                                          paste_source=algorithm != "dacs_nopaste",
+                                                          weighted=algorithm != "dacs_noweight")
             logits = model(torch.cat((x, t)))
             zs, zt = features["z"].mean((2, 3)).split(BATCH)
             ls, lt = logits.split(BATCH)
@@ -245,7 +267,7 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
                 loss = loss + F.binary_cross_entropy_with_logits(domain, labels)
             elif algorithm == "minent_mmd":
                 loss = loss + weight*(binary_entropy(lt.sigmoid()).mean() + gaussian_mmd(zs, zt))
-            elif algorithm == "dacs":
+            elif algorithm.startswith("dacs"):
                 loss = loss + weight*F.binary_cross_entropy_with_logits(lt, mixed_label, weight=mixed_weight)
             elif algorithm == "mmd":
                 loss = loss + weight*gaussian_mmd(zs, zt)
@@ -288,7 +310,7 @@ def train(algorithm, scenario, run, lam, device, steps=STEPS, every=EVERY):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=["adabn", "train", "grid"])
-    parser.add_argument("--algorithm", choices=ALGORITHMS + METHODS + CONTROLS)
+    parser.add_argument("--algorithm", choices=ALGORITHMS + METHODS + CONTROLS + ABLATIONS)
     parser.add_argument("--algorithms", nargs="+", default=list(ALGORITHMS), choices=ALGORITHMS + METHODS)
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--runs", nargs="+", default=RUNS)

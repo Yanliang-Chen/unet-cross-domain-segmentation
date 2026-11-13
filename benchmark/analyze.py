@@ -27,16 +27,25 @@ BOOTSTRAP, BOOTSTRAP_SEED = 2000, 20261031
 BUDGETS, BUDGET_REPEATS, BUDGET_SEED = (0.01, 0.02, 0.03, 0.04, 0.05), 10, 20261101
 
 
+def image_sets(meta, test):
+    """Amendment v2: Dice only on polyp-set images with a non-empty mask; empty masks apart."""
+    kind, area = meta["kind"], meta["gt_fraction"]
+    polyp = test & (kind == "polyp") & (area > 0)
+    return {"polyp": polyp, "small": polyp & (area < SMALL),
+            "empty": test & (kind == "polyp") & (area == 0), "normal": test & (kind == "normal")}
+
+
 def candidate_metrics(scores, meta):
-    test, kind = scores["is_test"], meta["kind"]
-    polyp, normal = test & (kind == "polyp"), test & (kind == "normal")
-    small = polyp & (meta["gt_fraction"] < SMALL)
+    sets = image_sets(meta, scores["is_test"])
+    polyp, small, empty, normal = sets["polyp"], sets["small"], sets["empty"], sets["normal"]
     groups = meta["group"][polyp]
     out = {"dice": float(np.mean(scores["dice"][polyp])),
            "iou": float(np.mean(scores["iou"][polyp])),
            "small_dice": float(np.mean(scores["dice"][small])) if small.any() else None,
            "n_polyp": int(polyp.sum()), "n_small": int(small.sum()), "n_normal": int(normal.sum()),
            "_dice": scores["dice"][polyp].astype(np.float32)}
+    if empty.any():
+        out["empty_fpr"] = float(np.mean(scores["fg_native"][empty] > 0))
     if groups.size and all(groups):
         out["group_dice"] = float(np.mean([np.mean(scores["dice"][polyp][groups == g])
                                            for g in np.unique(groups)]))
@@ -68,7 +77,7 @@ def load_pools(pools, features=True):
                 continue
             meta = np.load(meta_path)
             polyp = meta["kind"] == "polyp"
-            units[scenario] = meta["group"][polyp]
+            units[scenario] = meta["group"][image_sets(meta, polyp)["polyp"]]
             for c in candidates:
                 path = SCORES/pool/scenario/f"{c['id']}.npz"
                 if not path.exists():
@@ -165,7 +174,7 @@ def evaluate_pool(rows, groups, guard_reference, rng, intervals):
 
 
 def _summary(row):
-    keys = ("id", "algorithm", "dice", "group_dice", "small_dice", "fpr_any", "fpr_area", "auroc")
+    keys = ("id", "algorithm", "dice", "group_dice", "small_dice", "fpr_any", "fpr_area", "empty_fpr", "auroc")
     return {k: row[k] for k in keys if k in row}
 
 
