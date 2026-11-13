@@ -223,7 +223,7 @@ def new_patients_figure(path):
     axes[1].set_xlabel("Δ FPR (points); dashed line: pre-set allowed increase, upper bound ≤ +5", color=MUTED, fontsize=8)
     axes[0].set_yticks(range(len(rows)), [r[0] for r in rows][::-1], fontsize=8, color=INK)
     axes[1].set_xlim(right=max(9, axes[1].get_xlim()[1]))
-    fig.suptitle("FAR new-patient test (222 held-out patients): paired differences, 95% interval; "
+    fig.suptitle("FAR new-patient test (222 held-out patients; Dice over the 93 with polyps): paired differences, 95% interval; "
                  "top two rows = pre-set criteria, open marker = interval includes 0",
                  x=0.01, ha="left", fontsize=9, color=MUTED)
     save(fig, path)

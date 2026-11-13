@@ -65,13 +65,21 @@ Intervals come from 2,000 bootstrap draws over base runs and groups jointly. Eve
 - **Levels:** deployed Dice, small-polyp Dice and FPR are per-image (per-frame) means over the test images, averaged over the 6 base runs.
 - **Paired differences:** averaged within each group, then bootstrapped jointly over base runs and groups.
 
-Groups per target:
-- ClinicDB: 20 video groups.
-- ETIS and ColonDB: single images, because there are no video ids. Adjacent frames count as independent, so their intervals may be too narrow.
-- PolypGen: 6 centres for polyp images, 23 negative sequences for normal images.
-- FAR: 444 duplicate-merged patient groups.
-- PolypDB Hanoi: 256 patients.
-- FAR new-patient test: 222 held-out patients.
+Groups actually resampled, per target and endpoint (only groups with images in that endpoint's set enter its bootstrap):
+
+| Target | Dice (polyp images) | Small-polyp Dice | Normal FPR | Empty-mask FPR |
+|---|---|---|---|---|
+| ClinicDB | 20 videos | 9 videos | – | – |
+| ETIS | 196 single images | 100 single images | – | – |
+| ColonDB | 380 single images | 97 single images | – | – |
+| PolypGen | 6 centres | 6 centres | 10 negative sequences | 6 centres |
+| FAR | 186 patients with polyp images | 93 | 444 patients | – |
+| PolypDB Hanoi | 256 patients | 110 | – | – |
+| FAR new-patient test | 93 held-out patients with polyp images | 47 | 222 held-out patients | – |
+
+- ETIS and ColonDB have no video ids, so adjacent frames count as independent and their intervals may be too narrow.
+- ClinicDB's small-polyp Dice rests on 9 videos and PolypGen on 6 centres, so those intervals are coarse.
+- Correction (2026-11-13): earlier notes gave 23 negative sequences for PolypGen (there are 10, seq14–seq23) and only the total group counts for FAR (444) and the new-patient test (222). The computation always used the per-endpoint groups; only the notes changed.
 
 ## 4. Completed
 
@@ -243,7 +251,7 @@ Script `benchmark/curves.py`; table `results/benchmark/curves.md`; figures `resu
 - The control drifts below its start on ETIS, ColonDB and FAR (ColonDB 0.443 → 0.410).
 - MinEnt+MMD peaks early: the mean pick is at steps 480–760, and the last step is clearly worse (ColonDB 0.496 vs 0.568 at the pick), so checkpoint selection matters for it.
 - DACS keeps improving on ColonDB.
-- The Source-Risk pick is close to the best checkpoint in each trajectory: the gap is 0.003–0.032 for the methods and 0.005–0.069 for the control.
+- The Source-Risk pick is close to the best checkpoint in each trajectory: the gap is 0.004–0.032 for the methods and 0.005–0.069 for the control.
 - Over training, the control's normal FPR climbs to 83–85%, while DACS on FAR falls to about 41%.
 
 **Small polyps (GT under 2%).** Gain over the same base run's SourceOnly pick, in trajectories won:
@@ -338,7 +346,26 @@ Fixed in `benchmark_protocol.yaml` (amendment_v2) before any of these numbers we
 - None of the three methods significantly lowers small-polyp Dice.
 - **Empty-mask FPR** intervals all include zero.
 
-**Selection over whole pools** (`results/benchmark/selection.md`).
+**H4 is a supporting analysis:** how the deployed checkpoint is chosen without target labels, and where that fails (`results/benchmark/selection.md`).
+
+**The deployment rule, inside each trajectory.** Regret = best saved checkpoint by target Dice − Source-Risk pick. A failure is a regret ≥ 0.05, a descriptive threshold set after the curves analysis, not a test.
+
+| Target | Mean regret, DACS / MinEnt+MMD / FDA | Failures (3 methods) | Models that fail more |
+|---|---|---:|---|
+| ClinicDB | 0.012 / 0.014 / 0.020 | 1/54 | MCC 9/18; SourceOnly, AdaBN 3/6 each |
+| ETIS | 0.022 / 0.020 / 0.016 | **7/54** | MinEnt, DANN 5/18 each; control, SourceOnly 2/6 each |
+| ColonDB | 0.025 / 0.016 / 0.032 | **5/54** | control 3/6 (0.069), SourceOnly 3/6, AdaBN 3/6; DANN 5/18 |
+| PolypGen | 0.009 / 0.005 / 0.004 | 0/54 | AdaBN 1/6 |
+| FAR | 0.009 / 0.011 / 0.005 | 0/18 | control 1/6 |
+
+- The rule is reliable for the main methods. Failures cluster on the largest shifts (ETIS, ColonDB) and on unstable models.
+- PolypGen and FAR methods saved a checkpoint only every 400 steps, so their regret is smaller by construction.
+
+**Selection across methods (not used for deployment).** Three pools per target: SourceOnly only; the **original protocol pool** (the 13 original pools run on that target); the **complete pool** (plus the later source-only continuation and DACS ablations).
+- Adding the later models changes only FAR: Source-Risk now picks a DACS-without-paste checkpoint, and the loss drops from 0.053 to 0.004 [−0.043, 0.020]. ClinicDB 0.051 → 0.055 [0.001, 0.090]; ETIS, ColonDB and PolypGen are unchanged.
+- Among the 9 fully scored validators, Source-Risk ranks first on 5/5 targets in the complete pool (3rd on FAR in the original pool).
+
+The bullets below describe the original protocol pool.
 - **Validator coverage.** Only 9 of the 19 validators are scored for every candidate in the current pools. The feature-based IWCV, DEV and SND, plus MixVal and CMR-TTD, were run only on ClinicDB's SourceOnly pool and its v1 1,860-candidate pool.
 - **Source-Risk ranking.** Among those 9 validators, Source-Risk has the smallest loss on 4/5 targets and ranks 3rd on FAR, where CMR-EI does better.
 - **Cross-method selection is unreliable.** Source-Risk picks a control checkpoint on ClinicDB, ColonDB and FAR. The loss is 0.051 [−0.020, 0.099] on ClinicDB (Oracle 0.727, DACS) and 0.224 on ColonDB.
@@ -459,7 +486,7 @@ Every earlier FPR result is transductive: the model adapted on the same unlabell
   - Secondary: DACS λ=0.5, SourceOnly.
   - Checkpoints every 200 steps, Source-Risk pick, no post-processing.
 - **Criteria.** Lower 95% bound of the Dice difference > 0, **and** upper 95% bound of the normal-FPR (any pixel) increase ≤ +5 points. H3 holds on new patients only if both are met.
-- **Units.** Levels are image means over the test images (6 base runs). Differences are grouped by the 222 test patients and bootstrapped jointly over base runs and patients.
+- **Units.** Levels are image means over the test images (6 base runs). Differences are grouped by patient and bootstrapped jointly over base runs and patients: Dice over the 93 test patients with polyp images, small-polyp Dice over 47, normal FPR over all 222.
 - **Table:** `results/benchmark/new_patients_far.md`.
 
 | Model (vs source-only continuation) | Δ Dice [95% CI] | Δ normal FPR, points [95% CI] | Result |

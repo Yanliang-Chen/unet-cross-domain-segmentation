@@ -1,6 +1,6 @@
 # New-patient test on FAR (amendment v2)
 
-Test patients never used for adaptation: 198 polyp images and 3967 normal images; adaptation used the unlabelled images of the other patients. **Levels** are image means over the test images (mean of 6 base runs). **Differences** are paired by base run and averaged per patient group, with 95% intervals from a joint bootstrap over base runs and patient groups. Rule frozen in a commit before any run; evaluated once.
+Test patients never used for adaptation: 198 polyp images and 3967 normal images; adaptation used the unlabelled images of the other patients. **Levels** are image means over the test images (mean of 6 base runs). **Differences** are paired by base run and averaged per patient group, with 95% intervals from a joint bootstrap over base runs and patient groups. Groups resampled per endpoint: Dice, the 93 test patients with polyp images; small-polyp Dice, 47; normal-image FPR, all 222 test patients (those with normal images). Rule frozen in a commit before any run; evaluated once.
 
 ## Pre-set criteria (reference: source-only continuation)
 

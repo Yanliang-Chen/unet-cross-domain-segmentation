@@ -21,19 +21,29 @@ POOLS = ("source_only", "uda_adabn", "uda_minent", "uda_advent", "uda_dann", "ud
 METRICS = ("dice", "group_dice", "iou", "small_dice", "fpr_any", "fpr_area", "empty_fpr", "auroc")
 BOOTSTRAP, SEED = 2000, 20261101
 LATE = ("continue_source", "dacs_nopaste", "dacs_noweight")
-# Resampling unit of every paired interval (levels are always plain image means)
-UNITS = {"clinicdb": "20 video groups",
-         "etis": "single images: no video ids, so adjacent frames count as independent and intervals may be too narrow",
-         "colondb": "single images: no video ids, so adjacent frames count as independent and intervals may be too narrow",
-         "polypgen": "6 centres for polyp images, 23 negative sequences for normal images",
-         "far": "444 duplicate-merged patient groups",
-         "polypdb": "256 patients",
-         "far_split": "222 held-out patients"}
+# Groups resampled by every paired interval, per endpoint: only groups with at least one image in the
+# endpoint's image set enter its bootstrap (compare.Target.groups). Counts checked against the score
+# metadata on 2026-11-13. Levels are always plain image means.
+GROUPS = {"clinicdb": {"dice": "20 videos", "small": "9 videos"},
+          "etis": {"dice": "196 single images", "small": "100 single images"},
+          "colondb": {"dice": "380 single images", "small": "97 single images"},
+          "polypgen": {"dice": "6 centres", "small": "6 centres", "fpr": "10 negative sequences",
+                       "empty": "6 centres"},
+          "far": {"dice": "186 patients with polyp images", "small": "93 patients", "fpr": "444 patients"},
+          "polypdb": {"dice": "256 patients", "small": "110 patients"},
+          "far_split": {"dice": "93 held-out patients with polyp images", "small": "47 held-out patients",
+                        "fpr": "222 held-out patients"}}
+ENDPOINTS = {"dice": "Dice", "small": "small-polyp Dice", "fpr": "normal-image FPR", "empty": "empty-mask FPR"}
+SINGLE = ("no video ids, so adjacent frames count as independent and intervals may be too narrow")
+# Dice groups, for tables whose intervals are Dice only
+UNITS = {s: g["dice"] + (f" ({SINGLE})" if s in ("etis", "colondb") else "") for s, g in GROUPS.items()}
 
 
 def unit_note(scenario):
+    groups = "; ".join(f"{ENDPOINTS[e]}: {n}" for e, n in GROUPS[scenario].items())
     return (f"Levels are image means. Paired differences are averaged per group and bootstrapped jointly over "
-            f"base runs and groups; groups here: {UNITS[scenario]}.")
+            f"base runs and groups; groups resampled per endpoint: {groups}"
+            + (f" ({SINGLE})" if scenario in ("etis", "colondb") else "") + ".")
 
 
 def base_run(row):

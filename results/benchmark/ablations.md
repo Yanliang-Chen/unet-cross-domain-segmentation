@@ -4,7 +4,7 @@
 
 ## ClinicDB
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 20 video groups.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 20 videos; small-polyp Dice: 9 videos.
 
 | Model (λ 0.5) | Dice | Small-polyp Dice |
 |---|---:|---:|
@@ -19,7 +19,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## ETIS
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 196 single images; small-polyp Dice: 100 single images (no video ids, so adjacent frames count as independent and intervals may be too narrow).
 
 | Model (λ 0.5) | Dice | Small-polyp Dice |
 |---|---:|---:|
@@ -32,7 +32,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## ColonDB
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 380 single images; small-polyp Dice: 97 single images (no video ids, so adjacent frames count as independent and intervals may be too narrow).
 
 | Model (λ 0.5) | Dice | Small-polyp Dice |
 |---|---:|---:|
@@ -45,7 +45,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## PolypGen
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 6 centres for polyp images, 23 negative sequences for normal images.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 6 centres; small-polyp Dice: 6 centres; normal-image FPR: 10 negative sequences; empty-mask FPR: 6 centres.
 
 | Model (λ 0.5) | Dice | Small-polyp Dice | Normal FPR |
 |---|---:|---:|---:|
@@ -58,7 +58,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## FAR
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 444 duplicate-merged patient groups.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 186 patients with polyp images; small-polyp Dice: 93 patients; normal-image FPR: 444 patients.
 
 | Model (λ 0.5) | Dice | Small-polyp Dice | Normal FPR |
 |---|---:|---:|---:|

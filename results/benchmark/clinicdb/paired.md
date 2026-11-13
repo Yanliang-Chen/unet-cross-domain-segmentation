@@ -1,6 +1,6 @@
 # Paired gains on clinicdb: Source-Risk pick per trajectory
 
-Pick Dice and Normal FPR are image means. Gain = per-group Dice difference to the same base run's pick, averaged over lambdas; 95% interval from 2000 joint bootstrap draws over base runs and groups. Groups: 20 video groups.
+Pick Dice and Normal FPR are image means. Gain = per-group Dice difference to the same base run's pick, averaged over lambdas; 95% interval from 2000 joint bootstrap draws over base runs and groups. Groups: 20 videos.
 
 | Algorithm | Trajectories | Pick Dice | Normal FPR | vs control [95% CI] | Wins | vs SourceOnly [95% CI] | Wins |
 |---|---:|---:|---:|---|---:|---|---:|

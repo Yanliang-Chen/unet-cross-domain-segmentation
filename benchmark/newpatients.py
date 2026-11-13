@@ -28,7 +28,9 @@ def main():
              f"{int(sets['normal'].sum())} normal images; adaptation used the unlabelled images of the other "
              "patients. **Levels** are image means over the test images (mean of 6 base runs). **Differences** "
              "are paired by base run and averaged per patient group, with 95% intervals from a joint bootstrap "
-             "over base runs and patient groups. Rule frozen in a commit before any run; evaluated once.", "",
+             "over base runs and patient groups. Groups resampled per endpoint: Dice, the 93 test patients with "
+             "polyp images; small-polyp Dice, 47; normal-image FPR, all 222 test patients (those with normal "
+             "images). Rule frozen in a commit before any run; evaluated once.", "",
              "## Pre-set criteria (reference: source-only continuation)", "",
              "| Model | Δ Dice [95% CI] | Dice criterion (lower bound > 0) | Δ normal FPR, points [95% CI] | FPR criterion (upper bound ≤ +5) | H3 on new patients |",
              "|---|---|---|---|---|---|"]

@@ -1,6 +1,6 @@
 # Phase 3: frozen-rule holdout on PolypDB Hanoi (amendment v2)
 
-1000 WLI polyp images from Hanoi Medical University / IGH (Fujinon), never used before; transductive like the other targets; bootstrap over the 256 patient groups. Rule and analysis fixed in a commit before any prediction on these images; evaluated once.
+1000 WLI polyp images from Hanoi Medical University / IGH (Fujinon), never used before; transductive like the other targets; bootstrap over patient groups (Dice: 256 patients; small-polyp Dice: the 110 patients with small polyps). Rule and analysis fixed in a commit before any prediction on these images; evaluated once.
 
 ## Primary test
 

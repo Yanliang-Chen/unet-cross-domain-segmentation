@@ -4,7 +4,7 @@ Deployed Source-Risk picks; each cell is the method's mean level, then the paire
 
 ## ClinicDB (427 polyp images, 36 small)
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 20 video groups.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 20 videos; small-polyp Dice: 9 videos.
 
 | Method | Dice | Small-polyp Dice | Verdict |
 |---|---|---|---|
@@ -21,7 +21,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## ETIS (196 polyp images, 100 small)
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 196 single images; small-polyp Dice: 100 single images (no video ids, so adjacent frames count as independent and intervals may be too narrow).
 
 | Method | Dice | Small-polyp Dice | Verdict |
 |---|---|---|---|
@@ -38,7 +38,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## ColonDB (380 polyp images, 97 small)
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 380 single images; small-polyp Dice: 97 single images (no video ids, so adjacent frames count as independent and intervals may be too narrow).
 
 | Method | Dice | Small-polyp Dice | Verdict |
 |---|---|---|---|
@@ -55,7 +55,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## PolypGen (1412 polyp images, 293 small, 1755 normal, 125 empty-mask)
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 6 centres for polyp images, 23 negative sequences for normal images.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 6 centres; small-polyp Dice: 6 centres; normal-image FPR: 10 negative sequences; empty-mask FPR: 6 centres.
 
 | Method | Dice | Small-polyp Dice | Normal FPR (any) | Normal FPR (area ≥0.1%) | Empty-mask FPR | Verdict |
 |---|---|---|---|---|---|---|
@@ -69,7 +69,7 @@ Levels are image means. Paired differences are averaged per group and bootstrapp
 
 ## FAR (432 polyp images, 123 small, 7749 normal)
 
-Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 444 duplicate-merged patient groups.
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups resampled per endpoint: Dice: 186 patients with polyp images; small-polyp Dice: 93 patients; normal-image FPR: 444 patients.
 
 | Method | Dice | Small-polyp Dice | Normal FPR (any) | Normal FPR (area ≥0.1%) | Verdict |
 |---|---|---|---|---|---|

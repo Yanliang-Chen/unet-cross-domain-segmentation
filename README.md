@@ -20,7 +20,7 @@
 | 继续训练对照（目标图进入 BatchNorm） | 0.637 | 0.338 | 0.435 | 0.615（79%） | 0.492（74%） | – |
 | SourceOnly | 0.610 | 0.366 | 0.444 | 0.582（25%） | 0.510（57%） | 0.751 |
 
-方法行对 λ 0.1 / 0.5 / 1 取平均（FAR 只有 λ=0.5）；“DACS 去掉粘贴”只有 λ=0.5，不能与平均值直接比大小。¹ 留出集上是事前冻结的部署规则 DACS λ=1。PolypGen 只算掩码非空的 1,412 张图（v2 修正，见 [metric_correction.md](results/benchmark/metric_correction.md)）。表中数字是逐图均值；下文的区间来自按组配对、对源轨迹和组联合 bootstrap 的差值。组的含义：ClinicDB 为视频，PolypGen 为中心/阴性序列，FAR 与 PolypDB 为患者。ETIS、ColonDB 没有视频编号，只能按单张图片重抽样，区间可能偏窄。
+方法行对 λ 0.1 / 0.5 / 1 取平均（FAR 只有 λ=0.5）；“DACS 去掉粘贴”只有 λ=0.5，不能与平均值直接比大小。¹ 留出集上是事前冻结的部署规则 DACS λ=1。PolypGen 只算掩码非空的 1,412 张图（v2 修正，见 [metric_correction.md](results/benchmark/metric_correction.md)）。表中数字是逐图均值；下文的区间来自按组配对、对源轨迹和组联合 bootstrap 的差值。每个终点只重抽样在该终点有图的组：ClinicDB 为视频（Dice 20 个，小息肉 9 个）；PolypGen 息肉图按 6 个中心，正常图按 10 个阴性序列；FAR 的 Dice 在 186 名有息肉图的患者上，误报在 444 名患者上；PolypDB 为 256 名患者；FAR 新患者测试的 Dice 在 93 名有息肉图的患者上，误报在 222 名上。ETIS、ColonDB 没有视频编号，只能按单张图片重抽样，区间可能偏窄。
 
 - **相对 SourceOnly：** DACS、MinEnt+MMD 在 5/5 个目标上区间不含零，FDA 4/5。
 - **对照偏弱：** 继续训练对照里，目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降；正常图误报 PolypGen +51、FAR +19 个百分点）。相对不用目标数据的纯源域继续训练，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
@@ -28,8 +28,8 @@
 - **DACS 消融：** 跨域粘贴只在 ColonDB 上提高 Dice（+0.044），其余 4 个目标上没有帮助，并在 PolypGen、FAR 上增加正常图误报 8–9 个百分点；主要起作用的是 EMA 教师的硬伪标签自训练。
 - **正常图误报（转导）：** 同时提高 Dice 并降低误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。小连通域后处理（事前固定）不改变 Dice，误报 FAR 降 5–7、PolypGen 降 4–5 个百分点。
 - **独立确认：** 事前冻结的规则在从未使用的 PolypDB 河内中心（1,000 张，256 名患者，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6；相对纯源域继续训练 +0.012 [+0.003, +0.022]。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
-- **新患者检验（FAR，事前冻结）：** 适应只用一半患者的无标签图，在另一半 222 名从未参与适应的患者上测量（198 张息肉图、3,967 张正常图，按患者分组 bootstrap）。相对纯源域继续训练，DACS λ=1：Dice +0.042 [+0.013, +0.073]，误报 −8.2 [−15.5, −0.7] 个百分点；去掉粘贴的 DACS λ=0.5：Dice +0.036 [+0.010, +0.062]，误报 −12.7 [−15.7, −9.9]。两者都满足事前标准（Dice 下界 > 0，误报增幅上界 ≤ +5）。粘贴在新患者上同样增加误报 +7.0 [+1.5, +13.0]。局限：与适应患者同院同设备，FAR 曾用于开发。
-- **无标签选模：** 方法固定时，按源验证在轨迹内选检查点损失小（0.003–0.032）；跨方法全局选模常选中对照检查点，不可靠。
+- **新患者检验（FAR，事前冻结）：** 适应只用一半患者的无标签图，在另一半 222 名从未参与适应的患者上测量（198 张息肉图来自其中 93 名患者，3,967 张正常图；Dice 在 93 名、误报在 222 名患者上分组 bootstrap）。相对纯源域继续训练，DACS λ=1：Dice +0.042 [+0.013, +0.073]，误报 −8.2 [−15.5, −0.7] 个百分点；去掉粘贴的 DACS λ=0.5：Dice +0.036 [+0.010, +0.062]，误报 −12.7 [−15.7, −9.9]。两者都满足事前标准（Dice 下界 > 0，误报增幅上界 ≤ +5）。粘贴在新患者上同样增加误报 +7.0 [+1.5, +13.0]。局限：与适应患者同院同设备，FAR 曾用于开发。
+- **怎样选检查点（H4，辅助）：** 部署规则在每条轨迹内按源验证选检查点，DACS、MinEnt+MMD、FDA 平均只比轨迹内最佳低 0.004–0.032；低 ≥ 0.05 的失败集中在 ETIS（7/54 条）和 ColonDB（5/54），PolypGen、FAR 上没有。跨方法全局选模不可靠：原协议候选池里常选中对照（ColonDB 损失 0.224）；加入后来的模型的完整候选池只在 FAR 上改选（去掉粘贴的 DACS）。
 
 ### 图
 
@@ -81,7 +81,7 @@
 | `python -m benchmark.curves` | λ、训练步数曲线与小息肉 Dice（只读 `candidates.csv`，写 `results/benchmark/curves.md` 与 `figures/`） |
 | `python -m benchmark.summary_figures` | 汇总图：`gains`、`controls`、`ablation`、`holdout`、`new_patients`、`dice_fpr`（`results/benchmark/figures/`） |
 | `python -m benchmark.compare` | 协议 v2：H2 直接比较、完整终点、事后部署规则、纯源域继续训练对照与 DACS 消融（`h2.md`、`endpoints.md`、`deployment.md`、`controls.md`、`ablations.md`） |
-| `python -m benchmark.selection` | 协议 v2：统一选模表（先运行 `benchmark.analyze` 的 `v2_source_only` 与 `v2_all`） |
+| `python -m benchmark.selection` | H4：轨迹内选点的遗憾与失败，以及三个候选池上的跨方法选模（先运行 `benchmark.analyze` 的 `v2_source_only`、`v2_all`（原协议候选池）与 `v2_full`（完整候选池）） |
 | `python -m benchmark.holdout` | 第 3 阶段：PolypDB 河内留出集的一次性评价（`holdout_polypdb.md`；数据需放在 `data/PolypDB/`） |
 | `python -m benchmark.newpatients` | FAR 新患者检验的一次性评价（场景 `far_split`，划分见 `benchmark/splits/far_patient_split.csv`；写 `new_patients_far.md`） |
 | `python -m benchmark.qualitative` | 按固定规则选图的定性例子（`results/benchmark/figures/qualitative_<场景>.png`） |

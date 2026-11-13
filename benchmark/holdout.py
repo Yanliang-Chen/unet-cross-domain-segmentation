@@ -34,7 +34,7 @@ def main():
     confirmed = g[1] > 0
     lines = ["# Phase 3: frozen-rule holdout on PolypDB Hanoi (amendment v2)", "",
              f"{int(t.sets['polyp'].sum())} WLI polyp images from Hanoi Medical University / IGH (Fujinon), never used "
-             "before; transductive like the other targets; bootstrap over the 256 patient groups. Rule and analysis "
+             "before; transductive like the other targets; bootstrap over patient groups (Dice: 256 patients; small-polyp Dice: the 110 patients with small polyps). Rule and analysis "
              "fixed in a commit before any prediction on these images; evaluated once.", "",
              "## Primary test", "",
              f"DACS λ=1, Source-Risk pick per trajectory, paired Dice gain over the same base run's SourceOnly pick: "
