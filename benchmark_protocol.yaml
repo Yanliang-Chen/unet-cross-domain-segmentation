@@ -170,3 +170,31 @@ amendment_v2:
     source_only_continue: {algorithm: continue_source, runs: 6, steps: 2000, every: 200, scored_on: [clinicdb, etis, colondb, polypgen, far]}
     dacs_ablations: {variants: [dacs_nopaste, dacs_noweight], targets: [clinicdb, far], lam: 0.5, every: {clinicdb: 200, far: 400}}
     dropped: [minent_mmd_balance]
+  # 2026-11-13, before any phase-3 run: the planned CVC-300 holdout is INVALID. A thumbnail
+  # near-duplicate check (32x24 grey, correlation) matches all 60 CVC-300 images to CVC-ColonDB frames
+  # (median r = 1.000, 60/60 above 0.98), so CVC-300 is a subset of ColonDB, which was already used for
+  # adaptation and evaluation. No CVC-300 prediction was computed. PolypGen positive sequences are not a
+  # clean substitute either (same centres; 190 of 4,450 frames have r > 0.98 to evaluated single frames).
+  # An independent confirmation needs a dataset not yet on disk.
+  phase3_status: cvc300_invalid_subset_of_colondb
+  # Phase-3 holdout FROZEN 2026-11-13 in a commit BEFORE any prediction, training or score on these
+  # images. Data: PolypDB (Jha et al. 2024; OSF pr7ms, PolypDB.zip sha256 93a4ef4b...c147, no dataset
+  # licence stated), centre "BKAI" = Hanoi Medical University / IGH, Fujinon, WLI only: 1,000 images,
+  # 256 patient groups (file stem without frame index). PolypDB's Norwegian centre is excluded (same
+  # hospital as the Kvasir-SEG source), Karolinska (40 images) and non-WLI modalities are out of scope.
+  # Near-duplicate check (same method as for CVC-300) against every image used so far (source, ClinicDB,
+  # ColonDB, ETIS, PolypGen incl. normals, FAR incl. healthy): 0/1000 above r = 0.98 (max 0.953).
+  phase3_holdout:
+    target: polypdb               # benchmark/data.py scenario
+    setting: transductive         # same as ETIS/ColonDB/PolypGen/FAR
+    units: patient groups (256)
+    metrics: v2 (positive Dice, small-polyp Dice); no normal images, no post-processing
+    primary: DACS lam 1 (amendment_v2.deployment_rule), 6 base runs, 2000 steps, checkpoint every 200,
+             Source-Risk pick per trajectory; paired Dice gain over the same base run's SourceOnly pick
+    confirmed_if: 95% joint-bootstrap interval of the primary gain lies above zero
+    also_reported: single deployed model (highest Source-Risk of the 6 picks) Dice
+    secondary: [DACS lam 1 vs source-only continuation, DACS without paste lam 0.5 vs SourceOnly,
+                DACS without paste lam 0.5 vs source-only continuation, source-only continuation vs SourceOnly,
+                small-polyp Dice gain of the primary]
+    script: benchmark/holdout.py  # evaluated once; no rule change or rerun with other settings afterwards
+  phase3_status: frozen_polypdb_hanoi

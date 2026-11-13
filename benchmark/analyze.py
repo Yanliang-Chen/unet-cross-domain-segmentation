@@ -17,7 +17,7 @@ from benchmark.score import REGISTRY, SCORES
 from benchmark.validators import auroc, feature_validators, validator_scores
 
 OUT = Path("runs/benchmark/analysis")
-TARGETS = ("clinicdb", "colondb", "etis", "polypgen", "far")
+TARGETS = ("clinicdb", "colondb", "etis", "polypgen", "far", "polypdb")
 VALIDATORS = ("source_risk", "iwcv", "dev", "devn", "entropy", "infomax", "bnm", "mcc", "snd",
               "mixval", "mixval_fg", "cmr_nhd_gauss", "cmr_ei_gauss", "cmr_nhd_fg_gauss",
               "cmr_ei_fg_gauss", "cmr_nhd_ttd", "cmr_ei_ttd", "cmr_nhd_fg_ttd", "cmr_ei_fg_ttd")

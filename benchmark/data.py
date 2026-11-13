@@ -1,6 +1,7 @@
 """Benchmark scenarios and their 256-pixel image caches with native-resolution masks."""
 import csv
 import json
+import re
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -11,7 +12,9 @@ from datasets.polypgen import center_pairs
 
 ROOT = Path("data")
 CACHE = Path("runs/benchmark/cache")
-SCENARIOS = ("source_val", "clinicdb", "colondb", "etis", "polypgen", "far")
+SCENARIOS = ("source_val", "clinicdb", "colondb", "etis", "polypgen", "far", "polypdb")
+# Phase-3 holdout (amendment v2): PolypDB centre BKAI = Hanoi Medical University / IGH, Fujinon, WLI only
+POLYPDB = ROOT/"PolypDB/PolypDB/PolypDB_center_wise/BKAI/WLI"
 
 
 def _pairs(directory):
@@ -70,6 +73,13 @@ def scenario_rows(name):
                     rows.append(_row(image, mask, kind, mapping[patient], "both"))
         if (sum(r["kind"] == "polyp" for r in rows), sum(r["kind"] == "normal" for r in rows)) != (432, 7749):
             raise ValueError("FAR count changed")
+        return rows
+    if name == "polypdb":
+        masks = {p.stem: p for p in index_images(POLYPDB/"masks")}      # one mask is a .jpg
+        rows = [_row(i, masks[i.stem], "polyp", re.sub(r"_\d+$", "", i.stem), "both")
+                for i in index_images(POLYPDB/"images")]
+        if len(rows) != 1000 or len({r["group"] for r in rows}) != 256:
+            raise ValueError("PolypDB Hanoi WLI count changed")
         return rows
     raise ValueError(f"Unknown scenario {name}")
 
