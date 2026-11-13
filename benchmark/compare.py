@@ -272,7 +272,7 @@ def controls_table(targets):
 
 def ablation_table(targets):
     lines = ["# Phase 2: DACS ablations (amendment v2)", "",
-             "λ = 0.5 only; checkpoint spacing as the existing DACS runs (ClinicDB 200, FAR 400 steps). "
+             "λ = 0.5 only; checkpoint spacing as the existing DACS runs (ClinicDB, ETIS, ColonDB 200; PolypGen, FAR 400 steps). "
              "Without paste: teacher pseudo-label loss on jittered target images. Without confidence weight: "
              "weight 1 outside the pasted polyp. Paired differences DACS − variant, same base run; 95% intervals.", ""]
     for s in ABLATION_TARGETS:

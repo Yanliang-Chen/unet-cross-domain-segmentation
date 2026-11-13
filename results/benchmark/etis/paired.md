@@ -4,6 +4,7 @@ Gain = per-group Dice difference to the same base run's pick, averaged over lamb
 
 | Algorithm | Trajectories | Pick Dice | Normal FPR | vs control [95% CI] | Wins | vs SourceOnly [95% CI] | Wins |
 |---|---:|---:|---:|---|---:|---|---:|
+| dacs_nopaste | 6 | 0.431 | – | +0.094 [+0.042, +0.141] | 5/6 | +0.066 [+0.031, +0.102] | 6/6 |
 | fda | 18 | 0.430 | – | +0.092 [+0.058, +0.128] | 18/18 | +0.064 [+0.033, +0.100] | 18/18 |
 | minent_mmd | 18 | 0.412 | – | +0.074 [+0.034, +0.114] | 16/18 | +0.046 [+0.017, +0.080] | 17/18 |
 | dacs | 18 | 0.403 | – | +0.066 [+0.032, +0.101] | 17/18 | +0.038 [+0.014, +0.065] | 16/18 |

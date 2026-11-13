@@ -23,7 +23,7 @@
 - 同时提高 Dice 并降低正常图误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。
 - 小连通域后处理（删除小于图像 0.1% 的预测块，事前固定）不改变 Dice，正常图误报 FAR 降 5–7 个百分点、PolypGen 降 4–5 个百分点。
 - 继续训练对照偏弱：目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降，正常图误报 PolypGen +51、FAR +19 个百分点）。换成不用目标数据的纯源域继续训练后，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
-- DACS 消融：跨域粘贴没有帮助（去掉后 Dice 不变、小息肉更好、FAR 误报更低），起作用的是 EMA 教师的硬伪标签自训练。
+- DACS 消融（五个目标，λ=0.5）：跨域粘贴只在 ColonDB 上提高 Dice（+0.044），其余 4 个目标上没有帮助，且在 PolypGen、FAR 上增加正常图误报约 8–9 个百分点；主要起作用的是 EMA 教师的硬伪标签自训练。
 - **独立确认：** 事前冻结的规则（DACS λ=1、按源验证选检查点）在从未使用的 PolypDB 河内中心（1,000 张，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6 条轨迹。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
 - 无标签选模：在 9 个全覆盖验证器中源验证在 4/5 个目标上损失最小，但跨方法全局选模常选中对照检查点；按方法固定、只在轨迹内选检查点更可靠。
 - v2 修正了 PolypGen 125 张空掩码图被算作阳性和小息肉的问题，见 [results/benchmark/metric_correction.md](results/benchmark/metric_correction.md)。
@@ -38,6 +38,7 @@
 | [EXPERIMENT_PROPOSAL.md](EXPERIMENT_PROPOSAL.md) | 英文实验方案：假设、已完成、待做与判定规则 |
 | [benchmark_protocol.yaml](benchmark_protocol.yaml) | 事前固定的场景、方法、部署规则、指标与验证器设置 |
 | [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、`h2.md`、`endpoints.md`、`selection.md`、`deployment.md`、`controls.md`、`ablations.md`、`holdout_polypdb.md`、`metric_correction.md`、后处理与曲线表、`figures/` 中的全部图 |
+| [results/manifests/](results/manifests/)、[results/per_image/](results/per_image/) | 数据清单与哈希、部署模型清单、运行环境；部署模型的逐图结果 |
 | [每日进度.md](每日进度.md) | 每天的完成情况和下一步 |
 | [失败方法记录.md](失败方法记录.md) | 2026-10-31 之前 18 类未达目标的尝试（报告附录） |
 
@@ -66,11 +67,60 @@
 
 方法实现集中在 [benchmark/uda.py](benchmark/uda.py)（AdaBN、MinEnt、AdvEnt、DANN、MMD、BNM、MCC、Mean Teacher、FDA、MinEnt+MMD、DACS、继续训练对照），验证器在 [benchmark/validators.py](benchmark/validators.py)。源模型训练与数据准备在根目录和 `scripts/`：`prepare_polyp_data.py` 划分 Kvasir/ClinicDB，`run_matrix.py` 按 `protocol.yaml` 训练 6 条源轨迹，`check_protocol.py` 校验划分。
 
+## 复现说明
+
+以下是重建结果所需的数据、划分和命令。尚未在新机器上从头完整重跑验证。目前做过的核对有两项：划分文件改为从 `benchmark/splits/` 读取后与原先逐行一致；`benchmark.manifest verify` 只用 Git 中的文件重算出 ClinicDB 上 DACS 相对 SourceOnly 的收益 +0.082，与 `paired.md` 相同。
+
+**数据（不在仓库中，放在 `data/` 下）。** 原始压缩包的大小和 SHA-256 见 [results/manifests/archives.csv](results/manifests/archives.csv)；每个场景用到的每张图片（相对 `data/` 的路径、组、角色、SHA-256）见 `results/manifests/<场景>.csv`。
+
+| 数据 | 来源 | 本地压缩包 |
+|---|---|---|
+| Kvasir-SEG（源域） | [Simula](https://datasets.simula.no/kvasir-seg/) | `kvasir-seg.zip` |
+| CVC-ClinicDB | [CVC](https://pages.cvc.uab.es/CVC-Colon/index.php/databases/) | `CVC/CVC-ClinicDB_datasets.zip` |
+| CVC-ColonDB、ETIS-LaribPolypDB | PraNet 测试集（[PraNet](https://github.com/DengPingFan/PraNet)） | `TestDataset.zip` |
+| PolypGen（C1–C6 单帧 + 阴性序列） | Ali 等，[Scientific Data 2023](https://www.nature.com/articles/s41597-023-01981-y) | `PolypGen2021_MultiCenterData_v3.zip` |
+| FAR-POLYP-SEG | [Zenodo](https://doi.org/10.5281/zenodo.20284781) | `FAR-POLYP-SEG/Dataset.zip` |
+| PolypDB（只用河内中心白光图，留出集） | [OSF](https://osf.io/pr7ms/)，数据集未注明许可，仅作研究使用 | `PolypDB/PolypDB.zip` |
+
+**划分。** 源域与 ClinicDB 的划分由 `scripts/prepare_polyp_data.py` 生成并由 `protocol.yaml` 中的 SHA-256 锁定，具体文件见 `results/manifests/source_train.csv`、`source_val.csv`、`clinicdb.csv`。PolypGen 正常图留出集和 FAR 患者分组在 [benchmark/splits/](benchmark/splits/)，`benchmark/data.py` 直接读取，不再依赖 `runs/`。
+
+**从头运行（GPU）。** 先按下方“环境”一节建好环境，然后依次运行：
+
+```bash
+.venv/Scripts/python.exe -m scripts.run_matrix
+```
+
+```bash
+.venv/Scripts/python.exe -m benchmark.score register-source
+```
+
+```bash
+bash benchmark/run_scenario.sh clinicdb minent advent dann mmd bnm mcc meanteacher fda minent_mmd dacs
+```
+
+```bash
+bash benchmark/run_scenario.sh etis minent mmd dann fda minent_mmd dacs
+```
+
+```bash
+LAMS=0.5 EVERY=400 bash benchmark/run_scenario.sh far fda minent_mmd dacs
+```
+
+ColonDB 与 ETIS 相同；PolypGen 用 `EVERY=400`、三个 λ。第 2 阶段对照与消融、第 3 阶段留出集的命令见 [benchmark_protocol.yaml](benchmark_protocol.yaml) 的 `amendment_v2` 和上面的代码表。
+
+**汇总表与图（CPU）。** `benchmark.report`（每个目标）、`benchmark.compare`、`benchmark.selection`、`benchmark.postprocess`、`benchmark.curves`、`benchmark.summary_figures`、`benchmark.holdout`。
+
+**不用 GPU 复核。** [results/manifests/deployed_models.csv](results/manifests/deployed_models.csv) 列出每条轨迹部署的检查点及其 SHA-256；`results/per_image/<目标>.csv.gz` 是这些模型的逐图 Dice 与原尺寸前景比例。
+
+```bash
+.venv/Scripts/python.exe -m benchmark.manifest verify
+```
+
+它只用 Git 中的文件重算 ClinicDB 上 DACS 相对 SourceOnly 的配对收益。运行环境（Python、PyTorch、CUDA、GPU、`pip freeze`）记录在 [results/manifests/environment.txt](results/manifests/environment.txt)。
+
 ## 环境
 
 训练和评价在 Windows + CUDA 上运行（RTX 5070）。仓库不包含数据集、权重或缓存；检查点和逐图分数在被 Git 忽略的 `runs/`，写报告需要的汇总表和图在 `results/benchmark/`。
-
-数据依赖：`benchmark/data.py` 还读取两份早期工作生成、只在本机的划分文件——PolypGen 正常图的留出集 `runs/real/negative_context/split.json` 和 FAR 的患者分组 `runs/real/far_confirmatory/freeze.json`。生成它们的代码已删除，可在 Git 历史中找到。
 
 新 Windows 环境：
 

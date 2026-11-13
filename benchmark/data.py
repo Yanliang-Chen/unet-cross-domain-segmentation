@@ -1,6 +1,5 @@
 """Benchmark scenarios and their 256-pixel image caches with native-resolution masks."""
 import csv
-import json
 import re
 from pathlib import Path
 import numpy as np
@@ -12,6 +11,9 @@ from datasets.polypgen import center_pairs
 
 ROOT = Path("data")
 CACHE = Path("runs/benchmark/cache")
+# PolypGen normal-image holdout and FAR duplicate-merged patient groups, exported 2026-11-13 from the
+# earlier local split files (runs/real/negative_context/split.json, runs/real/far_confirmatory/freeze.json)
+SPLITS = Path(__file__).parent/"splits"
 SCENARIOS = ("source_val", "clinicdb", "colondb", "etis", "polypgen", "far", "polypdb")
 # Phase-3 holdout (amendment v2): PolypDB centre BKAI = Hanoi Medical University / IGH, Fujinon, WLI only
 POLYPDB = ROOT/"PolypDB/PolypDB/PolypDB_center_wise/BKAI/WLI"
@@ -52,14 +54,14 @@ def scenario_rows(name):
     if name == "polypgen":
         rows = [_row(i, m, "polyp", center, "both")
                 for center, pairs in center_pairs().items() for i, m in pairs]
-        split = json.loads(Path("runs/real/negative_context/split.json").read_text(encoding="utf-8"))
-        rows += [_row(r["image"], None, "normal", r["analysis_group"], "both") for r in split["roles"]["holdout"]]
+        with (SPLITS/"polypgen_normals.csv").open(newline="", encoding="utf-8") as stream:
+            rows += [_row(ROOT/r["image"], None, "normal", r["group"], "both") for r in csv.DictReader(stream)]
         if len(rows) != 1537 + 1755:
             raise ValueError("PolypGen count changed")
         return rows
     if name == "far":
-        freeze = json.loads(Path("runs/real/far_confirmatory/freeze.json").read_text(encoding="utf-8"))
-        mapping = freeze["patient_group_mapping"]
+        with (SPLITS/"far_patient_groups.csv").open(newline="", encoding="utf-8") as stream:
+            mapping = {r["patient"]: r["group"] for r in csv.DictReader(stream)}
         rows = []
         for patient in sorted(mapping):
             folder = ROOT/"FAR-POLYP-SEG/Dataset"/patient

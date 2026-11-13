@@ -385,13 +385,21 @@ Scope fixed in the protocol (amendment_v2, phase-2 note) before any run.
 | without paste | 0.700 | 0.512 | 0.570 | 0.365 | 36.3% |
 | without confidence weight | 0.690 | 0.458 | 0.570 | 0.363 | 44.7% |
 
-- **The cross-domain paste does not help.**
-  - Dice is unchanged without it.
-  - Small-polyp Dice on ClinicDB is higher without it: DACS minus the variant is −0.075 [−0.149, −0.014].
-  - FAR normal FPR is lower without it: DACS is +8.1 points [+2.7, +13.4] higher.
+- **The cross-domain paste helps Dice only on ColonDB.** After extending the no-paste variant to all five targets (scope committed beforehand, d0818ce), DACS minus the variant on Dice is:
+
+  | Target | DACS − no paste, Dice |
+  |---|---|
+  | ClinicDB | −0.006 [−0.028, +0.017] |
+  | ETIS | −0.017 [−0.044, +0.008] |
+  | ColonDB | **+0.044 [+0.016, +0.072]** |
+  | PolypGen | −0.008 [−0.018, +0.001] |
+  | FAR | −0.006 [−0.021, +0.010] |
+
+- **The paste raises normal FPR** on both targets that have normal images: +9.0 points on PolypGen, +8.1 on FAR.
+- **It lowers small-polyp Dice on ClinicDB:** −0.075 [−0.149, −0.014].
 - **The confidence weight barely matters.**
 - **What works in DACS is EMA-teacher hard pseudo-label self-training with colour jitter.**
-- **The variant without the paste improves both Dice and FPR on FAR.** This is a post hoc finding on two targets at one λ.
+- **The variant without the paste has lower FPR on PolypGen (16.1%) and FAR (36.3%).** It was proposed after seeing ClinicDB and FAR, and it was tested at one λ only.
 
 ### 4.15 Phase 3 (2026-11-13): independent holdout on PolypDB Hanoi
 
@@ -421,7 +429,17 @@ Scope fixed in the protocol (amendment_v2, phase-2 note) before any run.
 
 ## 5. In progress
 
-Nothing running. Phases 0–3 finished 2026-11-13 (4.13–4.15). Next: phase 4 (reproducibility) and the write-up.
+Nothing running. Phases 0–4 finished 2026-11-13; phase 5 (write-up) has not started.
+
+| Phase | Done | Outcome |
+|---|---|---|
+| 0 Protocol amendment | yes | every later decision written down before its numbers |
+| 1 CPU corrections | yes | PolypGen empty-mask error fixed; H2 not supported by direct comparison |
+| 2 Controls and ablations | yes (MinEnt+MMD balance dropped by protocol) | the matched control is weak; DACS beats source-only continuation on 4/5 targets |
+| 3 Independent holdout | yes (PolypDB Hanoi instead of CVC-300) | frozen DACS λ=1 confirmed, +0.035 [+0.023, +0.049], 6/6 |
+| No-paste extension | yes | the paste helps Dice only on ColonDB |
+| 4 Reproducibility | yes (not rerun from scratch) | manifests, hashes, deployed models, per-image results; `verify` reproduces +0.082 |
+| 5 Write-up | no | – |
 
 ## 6. Remaining work
 
@@ -439,7 +457,7 @@ Nothing running. Phases 0–3 finished 2026-11-13 (4.13–4.15). Next: phase 4 (
 | 10 | ~~Source-only continued training (6 runs, no target forward), scored on all targets~~ (done, see 4.14) | Separates more source training from target BatchNorm; FDA's proper control | ≈ 0.5 h GPU | Nov 13 |
 | 11 | ~~DACS ablations (no paste; no confidence weight) on ClinicDB and FAR, λ=0.5~~ (done, see 4.14); MinEnt+MMD balance dropped by the protocol note | Mechanism | ≈ 1 h GPU | Nov 13 |
 | 12 | ~~Frozen-rule holdout~~ (done, see 4.15): CVC-300 cancelled (subset of CVC-ColonDB); PolypDB Hanoi centre used instead, primary test confirmed | Independent confirmation | ≈ 40 min GPU | Nov 13 |
-| 13 | Reproducibility: data manifests with hashes, split code back, deployed-model list, per-image CSVs | Reproducibility | CPU | phase 4 |
+| 13 | ~~Reproducibility~~ (done; not rerun from scratch): data manifests with hashes (`results/manifests/`), splits moved into `benchmark/splits/`, deployed-model list with checkpoint hashes, per-image results (`results/per_image/`), environment, README instructions; `benchmark.manifest verify` reproduces a paired gain from tracked files | Reproducibility | CPU | Nov 13 |
 | 14 | Write-up: method, results, limitations; the earlier 18 attempts move to an appendix ([失败方法记录.md](失败方法记录.md)) | Report | – | phase 5 |
 
 **Decision rules fixed now.**

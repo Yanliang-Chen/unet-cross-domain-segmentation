@@ -1,6 +1,6 @@
 # Phase 2: DACS ablations (amendment v2)
 
-λ = 0.5 only; checkpoint spacing as the existing DACS runs (ClinicDB 200, FAR 400 steps). Without paste: teacher pseudo-label loss on jittered target images. Without confidence weight: weight 1 outside the pasted polyp. Paired differences DACS − variant, same base run; 95% intervals.
+λ = 0.5 only; checkpoint spacing as the existing DACS runs (ClinicDB, ETIS, ColonDB 200; PolypGen, FAR 400 steps). Without paste: teacher pseudo-label loss on jittered target images. Without confidence weight: weight 1 outside the pasted polyp. Paired differences DACS − variant, same base run; 95% intervals.
 
 ## ClinicDB
 
@@ -14,6 +14,39 @@
 |---|---|---|
 | DACS − DACS without paste | -0.006 [-0.028, +0.017] | -0.075 [-0.149, -0.014] |
 | DACS − DACS without confidence weight | -0.001 [-0.006, +0.003] | -0.009 [-0.040, +0.012] |
+
+## ETIS
+
+| Model (λ 0.5) | Dice | Small-polyp Dice |
+|---|---:|---:|
+| DACS | 0.414 | 0.271 |
+| DACS without paste | 0.431 | 0.298 |
+
+| Comparison | Dice | Small-polyp Dice |
+|---|---|---|
+| DACS − DACS without paste | -0.017 [-0.044, +0.008] | -0.027 [-0.069, +0.009] |
+
+## ColonDB
+
+| Model (λ 0.5) | Dice | Small-polyp Dice |
+|---|---:|---:|
+| DACS | 0.624 | 0.386 |
+| DACS without paste | 0.580 | 0.377 |
+
+| Comparison | Dice | Small-polyp Dice |
+|---|---|---|
+| DACS − DACS without paste | +0.044 [+0.016, +0.072] | +0.010 [-0.024, +0.045] |
+
+## PolypGen
+
+| Model (λ 0.5) | Dice | Small-polyp Dice | Normal FPR |
+|---|---:|---:|---:|
+| DACS | 0.618 | 0.353 | 25.5% |
+| DACS without paste | 0.624 | 0.366 | 16.1% |
+
+| Comparison | Dice | Small-polyp Dice | Normal FPR (points) |
+|---|---|---|---|
+| DACS − DACS without paste | -0.008 [-0.018, +0.001] | -0.011 [-0.035, +0.012] | +9.0 [+0.7, +20.9] |
 
 ## FAR
 
