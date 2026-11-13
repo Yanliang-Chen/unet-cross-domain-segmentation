@@ -27,7 +27,7 @@ LABELS = {"dacs": "DACS", "minent_mmd": "MinEnt+MMD", "fda": "FDA", "minent": "M
 H2 = {"minent_mmd": ("minent", "mmd"), "dacs": ("minent", "mmd", "fda")}
 H2_TARGETS = ("clinicdb", "etis", "colondb")
 METHODS = ("dacs", "minent_mmd", "fda", "minent", "mmd", "dann", "continue", "continue_source", "adabn")
-ABLATION_TARGETS, ABLATIONS = ("clinicdb", "far"), ("dacs_nopaste", "dacs_noweight")
+ABLATION_TARGETS, ABLATIONS = ("clinicdb", "etis", "colondb", "polypgen", "far"), ("dacs_nopaste", "dacs_noweight")
 RULE_METHODS, RULE_LAMS = ("dacs", "minent_mmd", "fda"), (0.1, 0.5, 1.0)
 
 

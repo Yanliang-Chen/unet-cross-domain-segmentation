@@ -198,3 +198,9 @@ amendment_v2:
                 small-polyp Dice gain of the primary]
     script: benchmark/holdout.py  # evaluated once; no rule change or rerun with other settings afterwards
   phase3_status: frozen_polypdb_hanoi
+  # No-paste extension fixed 2026-11-13 BEFORE running: the phase-2 finding "the cross-domain paste does
+  # not help" rested on ClinicDB and FAR; extend the same comparison to the remaining targets. Same
+  # variant (dacs_nopaste), lam 0.5, checkpoint spacing as the existing DACS runs (ETIS, ColonDB 200;
+  # PolypGen 400). Comparison: DACS - dacs_nopaste at lam 0.5, paired by base run (Dice, small-polyp
+  # Dice; normal FPR on PolypGen). Claim holds on a target if the Dice interval does not lie above zero.
+  nopaste_extension: {variant: dacs_nopaste, targets: [etis, colondb, polypgen], lam: 0.5, every: {etis: 200, colondb: 200, polypgen: 400}}
