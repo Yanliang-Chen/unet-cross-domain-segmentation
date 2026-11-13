@@ -204,3 +204,27 @@ amendment_v2:
   # PolypGen 400). Comparison: DACS - dacs_nopaste at lam 0.5, paired by base run (Dice, small-polyp
   # Dice; normal FPR on PolypGen). Claim holds on a target if the Dice interval does not lie above zero.
   nopaste_extension: {variant: dacs_nopaste, targets: [etis, colondb, polypgen], lam: 0.5, every: {etis: 200, colondb: 200, polypgen: 400}}
+  # New-patient test of H3 (Dice AND normal-image false positives), FROZEN 2026-11-13 in a commit
+  # BEFORE any training or prediction on the split. Target: FAR, the only target on disk with polyp
+  # and normal images and patient identifiers. Caveats fixed now: FAR was used for method development
+  # before 2026-11-01 and its transductive results are known; this test asks whether the gains hold
+  # for patients whose images were never used for adaptation, not whether they hold on unseen data.
+  new_patient_test:
+    scenario: far_split            # benchmark/data.py
+    split: benchmark/splits/far_patient_split.csv  # 444 duplicate-merged patient groups, seed 20261113,
+                                   # stratified 50/50 within polyp patients (186) and normal-only patients (258)
+    adaptation: unlabelled images of the 222 adaptation patients (4,016 images; no masks, no kind)
+    test: 222 held-out patients (198 polyp images from 93 patients, 3,967 normal images)
+    models:                        # 6 base runs each, 2000 steps, lr 1e-4, batch 8+8, checkpoint every 200,
+                                   # Source-Risk pick per trajectory, no post-processing, threshold 0.5
+      reference: continue_source   # strong target-free baseline, already trained (scored on the test patients)
+      primary: [dacs lam 1 (deployment rule), dacs_nopaste lam 0.5]
+      secondary: [dacs lam 0.5, source_only]
+    criteria:                      # each primary model judged separately against the reference
+      dice: paired Dice gain lower 95% bound > 0
+      fpr_margin: upper 95% bound of the paired normal-FPR (any pixel) increase <= +5 points
+                  # the same 5-point threshold the protocol already uses for a trade-off
+      h3_supported_on_new_patients: both criteria met
+    units: levels = image means over test images; differences paired by base run, averaged per patient
+           group, joint bootstrap over base runs and patient groups (2000 draws)
+    script: benchmark/newpatients.py   # evaluated once
