@@ -17,7 +17,7 @@ from torch.nn import functional as F
 
 from benchmark.analyze import image_sets, load_pools
 from benchmark.data import build_cache
-from benchmark.report import BOOTSTRAP, RESULTS, SEED, trajectories
+from benchmark.report import BOOTSTRAP, RESULTS, SEED, trajectories, unit_note
 from benchmark.score import BATCH, REGISTRY, SCORES, load_models, predict
 from utils import choose_device
 
@@ -112,7 +112,7 @@ def scenario_table(scenario, rows, registry, device, rng):
     if normal.any():
         head[0] += " Normal FPR | ΔFPR 0.1% [95% CI] (points) | ΔFPR 0.41% |"
     head.append("|" + "---|"*(head[0].count("|")-1))
-    lines = [f"## {scenario}", "", *head]
+    lines = [f"## {scenario}", "", unit_note(scenario), "", *head]
     for algorithm in ORDER:
         keys = [k for k in results if k[0] == algorithm]
         if not keys:

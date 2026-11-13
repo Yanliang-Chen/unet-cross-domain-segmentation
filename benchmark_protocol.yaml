@@ -228,3 +228,6 @@ amendment_v2:
     units: levels = image means over test images; differences paired by base run, averaged per patient
            group, joint bootstrap over base runs and patient groups (2000 draws)
     script: benchmark/newpatients.py   # evaluated once
+  # Result recorded after the single evaluation (2026-11-13), nothing above changed: both primary models
+  # met both criteria (results/benchmark/new_patients_far.md).
+  new_patient_status: evaluated_once_both_primary_supported

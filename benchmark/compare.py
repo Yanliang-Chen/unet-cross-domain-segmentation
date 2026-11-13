@@ -15,7 +15,7 @@ per-group differences averaged over lambdas per base run; joint bootstrap over b
 import numpy as np
 
 from benchmark.analyze import image_sets, load_pools
-from benchmark.report import BOOTSTRAP, POOLS, RESULTS, SEED, base_run, paired, trajectories
+from benchmark.report import BOOTSTRAP, POOLS, RESULTS, SEED, UNITS, base_run, paired, trajectories, unit_note
 from benchmark.score import SCORES
 
 TARGETS = ("clinicdb", "etis", "colondb", "polypgen", "far")
@@ -108,6 +108,7 @@ def h2_table(targets):
              f"{BOOTSTRAP} joint bootstrap draws over base runs and groups. Wins = trajectories with a "
              "positive mean difference. Supported if the interval excludes zero against every named "
              "comparator on at least 2 of 3 targets.", "",
+             "Resampling groups: " + "; ".join(f"{NAMES[s]}: {UNITS[s]}" for s in H2_TARGETS) + ".", "",
              "| Method | Comparator | " + " | ".join(NAMES[s] for s in H2_TARGETS) + " |",
              "|---|---|" + "---|"*len(H2_TARGETS)]
     verdicts = []
@@ -172,7 +173,7 @@ def endpoint_table(targets, paired_tables):
         n_small = int(t.sets["small"].sum())
         lines += [f"## {NAMES[s]} ({int(t.sets['polyp'].sum())} polyp images, {n_small} small"
                   + (f", {int(t.sets['normal'].sum())} normal" if normal else "")
-                  + (f", {int(t.sets['empty'].sum())} empty-mask" if empty else "") + ")", "",
+                  + (f", {int(t.sets['empty'].sum())} empty-mask" if empty else "") + ")", "", unit_note(s), "",
                   "| " + " | ".join(head) + " |", "|---|" + "---|"*(len(head)-1)]
         source = {"dice": t.level("source_only", "dice"), "small": t.level("source_only", "small")}
         cells = [f"SourceOnly", f"{source['dice']:.3f}", f"{source['small']:.3f}"]
@@ -210,7 +211,9 @@ def deployment(targets):
              "Rule: (method, λ) with the highest mean deployed Dice on ClinicDB among "
              "{DACS, MinEnt+MMD, FDA} × {0.1, 0.5, 1}; checkpoint = Source-Risk pick per trajectory; single "
              "model = the base run whose pick has the highest Source-Risk. Every target had been seen when the "
-             "rule was written, so this is not an independent confirmation.", "",
+             "rule was written, so this is not an independent confirmation. Dice, Small Dice and FPR columns are "
+             "image means; the gain column is paired and bootstrapped over base runs and groups (" +
+             "; ".join(f"{NAMES[s]}: {UNITS[s]}" for s in TARGETS) + ").", "",
              "ClinicDB mean deployed Dice by (method, λ): "
              + "; ".join(f"{LABELS[a]} λ{l:g} {v:.3f}" for (a, l), v in sorted(scores.items(), key=lambda x: -x[1])), "",
              f"**Rule picks {LABELS[method]}, λ={lam:g}.**", "",
@@ -248,11 +251,15 @@ def controls_table(targets):
              "Source-only continuation = the control's source batches without the target forward, so target "
              "images never reach the network (one set of 6 runs, scored on every target). Paired differences "
              "(same base run; lambdas averaged) with 95% intervals; normal FPR in percentage points.", ""]
-    rows = [("continue", "continue_source", "Control − source-only continuation (target images in BatchNorm)"),
-            ("continue_source", "source_only", "Source-only continuation − SourceOnly (more source training)"),
-            ("dacs", "continue_source", "DACS − source-only continuation"),
-            ("minent_mmd", "continue_source", "MinEnt+MMD − source-only continuation"),
-            ("fda", "continue_source", "FDA − source-only continuation")]
+    # the last two rows were added after the no-paste extension: a post hoc comparison on targets
+    # already examined, at the single lambda (0.5) where both DACS variants exist
+    rows = [("continue", None, "continue_source", "Control − source-only continuation (target images in BatchNorm)"),
+            ("continue_source", None, "source_only", "Source-only continuation − SourceOnly (more source training)"),
+            ("dacs", None, "continue_source", "DACS − source-only continuation"),
+            ("minent_mmd", None, "continue_source", "MinEnt+MMD − source-only continuation"),
+            ("fda", None, "continue_source", "FDA − source-only continuation"),
+            ("dacs", 0.5, "continue_source", "DACS λ=0.5 − source-only continuation (post hoc)"),
+            ("dacs_nopaste", 0.5, "continue_source", "DACS without paste λ=0.5 − source-only continuation (post hoc)")]
     for s in TARGETS:
         t = targets[s]
         if not t.keys("continue_source"):
@@ -260,12 +267,12 @@ def controls_table(targets):
         normal = t.has("fpr_any")
         level = (f"Dice {t.level('continue_source', 'dice'):.3f}, small {t.level('continue_source', 'small'):.3f}"
                  + (f", normal FPR {100*t.level('continue_source', 'fpr_any'):.1f}%" if normal else ""))
-        lines += [f"## {NAMES[s]} (source-only continuation: {level})", "",
+        lines += [f"## {NAMES[s]} (source-only continuation: {level})", "", unit_note(s), "",
                   "| Comparison | Dice | Small-polyp Dice" + (" | Normal FPR (points)" if normal else "") + " |",
                   "|---|---|---" + ("|---" if normal else "") + "|"]
-        for a, ref, label in rows:
-            if t.keys(a):
-                lines.append(f"| {label} | " + " | ".join(cells(t, a, ref)) + " |")
+        for a, lam, ref, label in rows:
+            if t.keys(a, lam):
+                lines.append(f"| {label} | " + " | ".join(cells(t, a, ref, lam)) + " |")
         lines.append("")
     return lines
 
@@ -278,7 +285,7 @@ def ablation_table(targets):
     for s in ABLATION_TARGETS:
         t = targets[s]
         normal = t.has("fpr_any")
-        lines += [f"## {NAMES[s]}", "",
+        lines += [f"## {NAMES[s]}", "", unit_note(s), "",
                   "| Model (λ 0.5) | Dice | Small-polyp Dice" + (" | Normal FPR" if normal else "") + " |",
                   "|---|---:|---:" + ("|---:" if normal else "") + "|"]
         for a in ("dacs", *ABLATIONS):

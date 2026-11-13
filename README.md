@@ -20,14 +20,15 @@
 | 继续训练对照（目标图进入 BatchNorm） | 0.637 | 0.338 | 0.435 | 0.615（79%） | 0.492（74%） | – |
 | SourceOnly | 0.610 | 0.366 | 0.444 | 0.582（25%） | 0.510（57%） | 0.751 |
 
-方法行对 λ 0.1 / 0.5 / 1 取平均（FAR 只有 λ=0.5）；“DACS 去掉粘贴”只有 λ=0.5，不能与平均值直接比大小。¹ 留出集上是事前冻结的部署规则 DACS λ=1。PolypGen 只算掩码非空的 1,412 张图（v2 修正，见 [metric_correction.md](results/benchmark/metric_correction.md)）。
+方法行对 λ 0.1 / 0.5 / 1 取平均（FAR 只有 λ=0.5）；“DACS 去掉粘贴”只有 λ=0.5，不能与平均值直接比大小。¹ 留出集上是事前冻结的部署规则 DACS λ=1。PolypGen 只算掩码非空的 1,412 张图（v2 修正，见 [metric_correction.md](results/benchmark/metric_correction.md)）。表中数字是逐图均值；下文的区间来自按组配对、对源轨迹和组联合 bootstrap 的差值。组的含义：ClinicDB 为视频，PolypGen 为中心/阴性序列，FAR 与 PolypDB 为患者。ETIS、ColonDB 没有视频编号，只能按单张图片重抽样，区间可能偏窄。
 
 - **相对 SourceOnly：** DACS、MinEnt+MMD 在 5/5 个目标上区间不含零，FDA 4/5。
 - **对照偏弱：** 继续训练对照里，目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降；正常图误报 PolypGen +51、FAR +19 个百分点）。相对不用目标数据的纯源域继续训练，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
 - **组合方法：** 与事前指定的单一方法直接比较，DACS、MinEnt+MMD 只在 ColonDB 上全部胜出；“组合更好”只有均值支持。
 - **DACS 消融：** 跨域粘贴只在 ColonDB 上提高 Dice（+0.044），其余 4 个目标上没有帮助，并在 PolypGen、FAR 上增加正常图误报 8–9 个百分点；主要起作用的是 EMA 教师的硬伪标签自训练。
-- **正常图误报：** 同时提高 Dice 并降低误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。小连通域后处理（事前固定）不改变 Dice，误报 FAR 降 5–7、PolypGen 降 4–5 个百分点。
+- **正常图误报（转导）：** 同时提高 Dice 并降低误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。小连通域后处理（事前固定）不改变 Dice，误报 FAR 降 5–7、PolypGen 降 4–5 个百分点。
 - **独立确认：** 事前冻结的规则在从未使用的 PolypDB 河内中心（1,000 张，256 名患者，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6；相对纯源域继续训练 +0.012 [+0.003, +0.022]。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
+- **新患者检验（FAR，事前冻结）：** 适应只用一半患者的无标签图，在另一半 222 名从未参与适应的患者上测量（198 张息肉图、3,967 张正常图，按患者分组 bootstrap）。相对纯源域继续训练，DACS λ=1：Dice +0.042 [+0.013, +0.073]，误报 −8.2 [−15.5, −0.7] 个百分点；去掉粘贴的 DACS λ=0.5：Dice +0.036 [+0.010, +0.062]，误报 −12.7 [−15.7, −9.9]。两者都满足事前标准（Dice 下界 > 0，误报增幅上界 ≤ +5）。粘贴在新患者上同样增加误报 +7.0 [+1.5, +13.0]。局限：与适应患者同院同设备，FAR 曾用于开发。
 - **无标签选模：** 方法固定时，按源验证在轨迹内选检查点损失小（0.003–0.032）；跨方法全局选模常选中对照检查点，不可靠。
 
 ### 图
@@ -38,6 +39,7 @@
 | [controls.png](results/benchmark/figures/controls.png) | 对照拆解：目标图进入 BatchNorm 的影响与多训练源域的影响（Dice、正常图误报） |
 | [ablation.png](results/benchmark/figures/ablation.png) | DACS 去掉跨域粘贴的消融（Dice、小息肉 Dice、正常图误报） |
 | [holdout.png](results/benchmark/figures/holdout.png) | PolypDB 河内留出集上的事前冻结检验 |
+| [new_patients.png](results/benchmark/figures/new_patients.png) | FAR 新患者检验：配对 Dice 与正常图误报差值及事前标准 |
 | [dice_fpr.png](results/benchmark/figures/dice_fpr.png) | PolypGen、FAR 上部署 Dice 与正常图误报 |
 | [lambda.png](results/benchmark/figures/lambda.png)、[step_curves.png](results/benchmark/figures/step_curves.png)、[step_fpr.png](results/benchmark/figures/step_fpr.png) | λ 敏感性与训练步数曲线 |
 | `qualitative_<目标>.png` | 按固定规则选图的定性例子（[选图清单](results/benchmark/qualitative.md)） |
@@ -45,6 +47,8 @@
 ![各目标的配对收益](results/benchmark/figures/gains.png)
 
 ![PolypDB 河内留出集](results/benchmark/figures/holdout.png)
+
+![FAR 新患者检验](results/benchmark/figures/new_patients.png)
 
 完整设计、结果与局限见[项目总览与实验设计](项目总览与实验设计.md)。
 
@@ -55,7 +59,7 @@
 | [项目总览与实验设计.md](项目总览与实验设计.md) | 研究问题、数据、方法、评价、全部结果、剩余工作、局限、参考文献（报告格式） |
 | [EXPERIMENT_PROPOSAL.md](EXPERIMENT_PROPOSAL.md) | 英文实验方案：假设、已完成、待做与判定规则 |
 | [benchmark_protocol.yaml](benchmark_protocol.yaml) | 事前固定的场景、方法、部署规则、指标与验证器设置 |
-| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、`h2.md`、`endpoints.md`、`selection.md`、`deployment.md`、`controls.md`、`ablations.md`、`holdout_polypdb.md`、`metric_correction.md`、后处理与曲线表、`figures/` 中的全部图 |
+| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、`h2.md`、`endpoints.md`、`selection.md`、`deployment.md`、`controls.md`、`ablations.md`、`holdout_polypdb.md`、`new_patients_far.md`、`metric_correction.md`、后处理与曲线表、`figures/` 中的全部图 |
 | [results/manifests/](results/manifests/)、[results/per_image/](results/per_image/) | 数据清单与哈希、部署模型清单、运行环境；部署模型的逐图结果 |
 | [每日进度.md](每日进度.md) | 每天的完成情况和下一步 |
 | [失败方法记录.md](失败方法记录.md) | 2026-10-31 之前 18 类未达目标的尝试（报告附录） |
@@ -75,10 +79,11 @@
 | `python -m benchmark.report --scenario <场景>` | 写入 `results/benchmark/<场景>/` 的配对收益表 |
 | `python -m benchmark.postprocess` | 部署模型的小连通域后处理（`results/benchmark/postprocessing.md`） |
 | `python -m benchmark.curves` | λ、训练步数曲线与小息肉 Dice（只读 `candidates.csv`，写 `results/benchmark/curves.md` 与 `figures/`） |
-| `python -m benchmark.summary_figures` | 汇总图：`gains`、`controls`、`ablation`、`holdout`、`dice_fpr`（`results/benchmark/figures/`） |
+| `python -m benchmark.summary_figures` | 汇总图：`gains`、`controls`、`ablation`、`holdout`、`new_patients`、`dice_fpr`（`results/benchmark/figures/`） |
 | `python -m benchmark.compare` | 协议 v2：H2 直接比较、完整终点、事后部署规则、纯源域继续训练对照与 DACS 消融（`h2.md`、`endpoints.md`、`deployment.md`、`controls.md`、`ablations.md`） |
 | `python -m benchmark.selection` | 协议 v2：统一选模表（先运行 `benchmark.analyze` 的 `v2_source_only` 与 `v2_all`） |
 | `python -m benchmark.holdout` | 第 3 阶段：PolypDB 河内留出集的一次性评价（`holdout_polypdb.md`；数据需放在 `data/PolypDB/`） |
+| `python -m benchmark.newpatients` | FAR 新患者检验的一次性评价（场景 `far_split`，划分见 `benchmark/splits/far_patient_split.csv`；写 `new_patients_far.md`） |
 | `python -m benchmark.qualitative` | 按固定规则选图的定性例子（`results/benchmark/figures/qualitative_<场景>.png`） |
 | `bash benchmark/run_scenario.sh <场景> <方法...>` | 一个场景的对照、适应、打分与分析全流程（环境变量 `LAMS`、`EVERY` 可选） |
 | `python -m benchmark.extra --pool <池>` | 可选：瓶颈特征、CMR-TTD、MixVal 等第二轮验证器 |
@@ -124,9 +129,9 @@ bash benchmark/run_scenario.sh etis minent mmd dann fda minent_mmd dacs
 LAMS=0.5 EVERY=400 bash benchmark/run_scenario.sh far fda minent_mmd dacs
 ```
 
-ColonDB 与 ETIS 相同；PolypGen 用 `EVERY=400`、三个 λ。第 2 阶段对照与消融、第 3 阶段留出集的命令见 [benchmark_protocol.yaml](benchmark_protocol.yaml) 的 `amendment_v2` 和上面的代码表。
+ColonDB 与 ETIS 相同；PolypGen 用 `EVERY=400`、三个 λ。第 2 阶段对照与消融、第 3 阶段留出集、FAR 新患者检验的命令见 [benchmark_protocol.yaml](benchmark_protocol.yaml) 的 `amendment_v2` 和上面的代码表。
 
-**汇总表与图（CPU）。** `benchmark.report`（每个目标）、`benchmark.compare`、`benchmark.selection`、`benchmark.postprocess`、`benchmark.curves`、`benchmark.summary_figures`、`benchmark.holdout`。
+**汇总表与图（CPU）。** `benchmark.report`（每个目标）、`benchmark.compare`、`benchmark.selection`、`benchmark.postprocess`、`benchmark.curves`、`benchmark.summary_figures`、`benchmark.holdout`、`benchmark.newpatients`。
 
 **不用 GPU 复核。** [results/manifests/deployed_models.csv](results/manifests/deployed_models.csv) 列出每条轨迹部署的检查点及其 SHA-256；`results/per_image/<目标>.csv.gz` 是这些模型的逐图 Dice 与原尺寸前景比例。
 

@@ -1,6 +1,6 @@
 # Experiment Proposal: Polyp Segmentation under Domain Shift with a Fixed U-Net
 
-Status: 2026-11-01. Protocol: [benchmark_protocol.yaml](benchmark_protocol.yaml). Result tables: [results/benchmark/](results/benchmark/). Daily log: [每日进度.md](每日进度.md).
+Status: 2026-11-13. Protocol: [benchmark_protocol.yaml](benchmark_protocol.yaml). Result tables: [results/benchmark/](results/benchmark/). Daily log: [每日进度.md](每日进度.md).
 
 ## 1. Research question
 
@@ -60,7 +60,18 @@ Target masks are never used for training or checkpoint selection.
 - normal-image false-positive rate (any pixel, and area ≥ 0.1%);
 - image-level AUROC.
 
-Intervals come from 2,000 bootstrap draws over base runs and image groups jointly.
+Intervals come from 2,000 bootstrap draws over base runs and groups jointly. Every results table separates two kinds of number:
+
+- **Levels:** deployed Dice, small-polyp Dice and FPR are per-image (per-frame) means over the test images, averaged over the 6 base runs.
+- **Paired differences:** averaged within each group, then bootstrapped jointly over base runs and groups.
+
+Groups per target:
+- ClinicDB: 20 video groups.
+- ETIS and ColonDB: single images, because there are no video ids. Adjacent frames count as independent, so their intervals may be too narrow.
+- PolypGen: 6 centres for polyp images, 23 negative sequences for normal images.
+- FAR: 444 duplicate-merged patient groups.
+- PolypDB Hanoi: 256 patients.
+- FAR new-patient test: 222 held-out patients.
 
 ## 4. Completed
 
@@ -275,6 +286,7 @@ Script `benchmark/curves.py`; table `results/benchmark/curves.md`; figures `resu
 - **`figures/controls.png`:** the control taken apart: the effect of target images in BatchNorm, and the effect of more source training, on Dice and normal FPR.
 - **`figures/ablation.png`:** DACS minus DACS without the paste, on all five targets: Dice, small-polyp Dice and normal FPR.
 - **`figures/holdout.png`:** the frozen-rule test on PolypDB Hanoi.
+- **`figures/new_patients.png`:** the FAR new-patient test: paired Dice and normal-FPR differences against the pre-set criteria (lower bound > 0; upper bound ≤ +5).
 - **`figures/dice_fpr.png`:** deployed Dice against normal-image FPR on PolypGen and FAR, with source-only continuation added.
   - FAR: DACS sits top-left, with the highest Dice and the lowest FPR.
   - On both targets the control sits far right, at 74–79% FPR; source-only continuation sits near SourceOnly.
@@ -379,6 +391,10 @@ Scope fixed in the protocol (amendment_v2, phase-2 note) before any run.
   - MinEnt+MMD is higher on both.
   - FDA is level.
 - **Caveat:** the reference saves a checkpoint every 200 steps, while the methods on PolypGen and FAR save every 400, which slightly favours the reference.
+- **Post hoc, on targets already examined: both DACS variants at λ=0.5 against source-only continuation.**
+  - DACS without the paste is above zero on all five targets. Its Dice gain is +0.023 to +0.066, and FPR is lower on PolypGen (−10.7 points) and FAR (−17.0).
+  - Full DACS at λ=0.5 is above zero on 4/5 targets; PolypGen's lower bound is −0.000.
+  - The independent test of this is the FAR new-patient test.
 
 **DACS ablations** (`results/benchmark/ablations.md`) at λ=0.5 on ClinicDB and FAR:
 
@@ -430,9 +446,48 @@ Scope fixed in the protocol (amendment_v2, phase-2 note) before any run.
   - No normal images, so false positives are not independently tested.
   - SourceOnly is already high (0.751), so the gain is smaller than on ETIS or ColonDB.
 
+### 4.16 New-patient test on FAR (2026-11-13, after phase 4)
+
+Every earlier FPR result is transductive: the model adapted on the same unlabelled images it was tested on, so it might only have learned those patients' normal images. This test splits FAR's patients in half. Adaptation uses only one half's unlabelled images; Dice and FPR are measured on the other half, which adaptation never saw. FAR is the only target with both polyp and normal images, so it can test both at once.
+
+- **Split:** `benchmark/splits/far_patient_split.csv`, seed 20261113, stratified 50/50 within the 186 polyp patients and the 258 normal-only patients.
+  - Adaptation: 222 patients, 4,016 unlabelled images.
+  - Test: 222 patients, 198 polyp images (from 93 patients) and 3,967 normal images.
+- **Frozen in advance.** Models, reference, λ, criteria and the acceptable FPR increase were committed before any training (ab537a8) and evaluated once.
+  - Reference: source-only continuation (target-free, so unaffected by the split).
+  - Primary: DACS λ=1 (the deployment rule) and DACS without paste λ=0.5.
+  - Secondary: DACS λ=0.5, SourceOnly.
+  - Checkpoints every 200 steps, Source-Risk pick, no post-processing.
+- **Criteria.** Lower 95% bound of the Dice difference > 0, **and** upper 95% bound of the normal-FPR (any pixel) increase ≤ +5 points. H3 holds on new patients only if both are met.
+- **Units.** Levels are image means over the test images (6 base runs). Differences are grouped by the 222 test patients and bootstrapped jointly over base runs and patients.
+- **Table:** `results/benchmark/new_patients_far.md`.
+
+| Model (vs source-only continuation) | Δ Dice [95% CI] | Δ normal FPR, points [95% CI] | Result |
+|---|---|---|---|
+| DACS λ=1 (deployment rule) | **+0.042** [+0.013, +0.073] | **−8.2** [−15.5, −0.7] | both met: supported |
+| DACS without paste λ=0.5 | **+0.036** [+0.010, +0.062] | **−12.7** [−15.7, −9.9] | both met: supported |
+
+| Model (test patients, image means) | Dice | Small-polyp Dice | Normal FPR (any pixel) | Normal FPR (area ≥ 0.1%) |
+|---|---:|---:|---:|---:|
+| SourceOnly | 0.508 | 0.280 | 56.2% | 51.6% |
+| Source-only continuation | 0.546 | 0.302 | 54.4% | 48.9% |
+| DACS λ=1 | 0.581 | 0.338 | 46.0% | 40.0% |
+| DACS λ=0.5 | 0.578 | 0.340 | 48.3% | 41.9% |
+| DACS without paste λ=0.5 | 0.578 | 0.353 | **41.0%** | **34.9%** |
+
+- **Primary test passed.** Both models raise Dice on patients never used for adaptation, and FPR goes down instead of up; both FPR intervals lie below zero.
+- **Secondary, declared in advance:**
+  - Over SourceOnly: DACS λ=1 Dice +0.089 [+0.052, +0.130], FPR −9.6 [−18.0, −1.2]; without paste +0.083 [+0.049, +0.117], FPR −14.1 [−21.5, −6.9].
+  - Source-only continuation over SourceOnly: Dice +0.046, FPR −1.3 [−6.5, +4.3] (interval includes zero).
+  - The paste reproduces its transductive effect: DACS λ=0.5 minus no paste, Dice +0.004 [−0.017, +0.024], FPR **+7.0** [+1.5, +13.0] (transductive FAR: +8.1).
+- **Limits.**
+  - Test and adaptation patients share a hospital and device: this tests new patients, not a new centre.
+  - FAR was used for method development before 2026-11-01, and the no-paste variant was proposed after seeing FAR. What is new here is the advance freeze and the patient separation, not the dataset.
+  - Only 93 test patients have polyps, so Dice intervals are wide. Only DACS was tested; MinEnt+MMD and FDA were not.
+
 ## 5. In progress
 
-Nothing running. Phases 0–4 finished 2026-11-13; phase 5 (write-up) has not started.
+Nothing running. Phases 0–4 and the FAR new-patient test finished 2026-11-13; phase 5 (write-up) has not started.
 
 | Phase | Done | Outcome |
 |---|---|---|
@@ -440,6 +495,7 @@ Nothing running. Phases 0–4 finished 2026-11-13; phase 5 (write-up) has not st
 | 1 CPU corrections | yes | PolypGen empty-mask error fixed; H2 not supported by direct comparison |
 | 2 Controls and ablations | yes (MinEnt+MMD balance dropped by protocol) | the matched control is weak; DACS beats source-only continuation on 4/5 targets |
 | 3 Independent holdout | yes (PolypDB Hanoi instead of CVC-300) | frozen DACS λ=1 confirmed, +0.035 [+0.023, +0.049], 6/6 |
+| FAR new-patient test | yes | both frozen models raise Dice and lower FPR on new patients (4.16) |
 | No-paste extension | yes | the paste helps Dice only on ColonDB |
 | 4 Reproducibility | yes (not rerun from scratch) | manifests, hashes, deployed models, per-image results; `verify` reproduces +0.082 |
 | 5 Write-up | no | – |
@@ -461,7 +517,8 @@ Nothing running. Phases 0–4 finished 2026-11-13; phase 5 (write-up) has not st
 | 11 | ~~DACS ablations (no paste; no confidence weight) on ClinicDB and FAR, λ=0.5~~ (done, see 4.14); MinEnt+MMD balance dropped by the protocol note | Mechanism | ≈ 1 h GPU | Nov 13 |
 | 12 | ~~Frozen-rule holdout~~ (done, see 4.15): CVC-300 cancelled (subset of CVC-ColonDB); PolypDB Hanoi centre used instead, primary test confirmed | Independent confirmation | ≈ 40 min GPU | Nov 13 |
 | 13 | ~~Reproducibility~~ (done; not rerun from scratch): data manifests with hashes (`results/manifests/`), splits moved into `benchmark/splits/`, deployed-model list with checkpoint hashes, per-image results (`results/per_image/`), environment, README instructions; `benchmark.manifest verify` reproduces a paired gain from tracked files | Reproducibility | CPU | Nov 13 |
-| 14 | Write-up: method, results, limitations; the earlier 18 attempts move to an appendix ([失败方法记录.md](失败方法记录.md)) | Report | – | phase 5 |
+| 14 | ~~FAR new-patient test~~ (done, see 4.16): patient-split adaptation and test sets; source-only continuation, full DACS and DACS without paste frozen with a +5-point FPR margin; both primary models pass | H3 on new patients, Dice and FPR | ≈ 2 h GPU | Nov 13 |
+| 15 | Write-up: method, results, limitations; the earlier 18 attempts move to an appendix ([失败方法记录.md](失败方法记录.md)) | Report | – | phase 5 |
 
 **Decision rules fixed now.**
 - A method counts as helpful on a target only if its paired gain over the control is positive in at least 2/3 of trajectories, and its interval excludes zero or it does so on at least two targets.
@@ -470,10 +527,13 @@ Nothing running. Phases 0–4 finished 2026-11-13; phase 5 (write-up) has not st
 ## 7. Limitations and risks
 
 - **Few independent runs.** The real sample size is 6 base runs, since λ values within a run are correlated. Intervals are wide; MinEnt's interval against the control still includes zero.
-- **Transductive targets.** ETIS, ColonDB, PolypGen and FAR use the same images for adaptation and test. That is standard in UDA, but those results are optimistic compared with ClinicDB's held-out test split.
+- **Transductive targets.** ETIS, ColonDB, PolypGen and FAR use the same images for adaptation and test. That is standard in UDA, but those results are optimistic. ClinicDB's held-out test split and the FAR new-patient test (4.16) point the same way.
 - **Colonoscopy only.** "Domains" means hospitals, devices and cohorts within colonoscopy, not other imaging modalities.
 - **Strict evaluation.** Small model, native resolution, and plain per-image Dice. Absolute numbers are lower than in papers that train on ClinicDB or evaluate at 352×352; conclusions rest on paired gains, not absolute Dice.
 - **What the control controls for.** The control forwards source and target images together, and target images in BatchNorm turned out to hurt on its own (4.14), so gains over the control are inflated. Source-only continued training is the stronger, target-free reference. Every method with a joint forward pass carries the same BatchNorm mixing; that effect is not separated per method.
-- **Development evidence vs confirmation.** ClinicDB and FAR were used for method development before 2026-11-01; PolypGen's λ 0.1/1 runs and the deployment rule were added after seeing results; four targets are transductive. The only independent confirmation is the frozen rule on PolypDB Hanoi (4.15): one centre, transductive, Dice only (no normal images).
+- **Development evidence vs confirmation.** ClinicDB and FAR were used for method development before 2026-11-01; PolypGen's λ 0.1/1 runs and the deployment rule were added after seeing results; four targets are transductive. There are two frozen, independent checks:
+  - PolypDB Hanoi (4.15) confirms Dice, but it is one centre, transductive and has no normal images.
+  - The FAR new-patient test (4.16) confirms Dice and FPR on patients adaptation never saw, but they share a hospital and device with the adaptation patients, and FAR was used for development.
+  - So the independent FPR evidence covers one hospital and DACS only.
 - **Validator coverage.** The 19-validator comparison holds only for ClinicDB's v1 pool; the current pools have 9 validators scored for every candidate.
 - **Not done on purpose:** architecture comparisons (UNet++, nnU-Net), which would change the fixed network and the research question.

@@ -1,6 +1,6 @@
 # Deployment rule (amendment v2, post hoc)
 
-Rule: (method, λ) with the highest mean deployed Dice on ClinicDB among {DACS, MinEnt+MMD, FDA} × {0.1, 0.5, 1}; checkpoint = Source-Risk pick per trajectory; single model = the base run whose pick has the highest Source-Risk. Every target had been seen when the rule was written, so this is not an independent confirmation.
+Rule: (method, λ) with the highest mean deployed Dice on ClinicDB among {DACS, MinEnt+MMD, FDA} × {0.1, 0.5, 1}; checkpoint = Source-Risk pick per trajectory; single model = the base run whose pick has the highest Source-Risk. Every target had been seen when the rule was written, so this is not an independent confirmation. Dice, Small Dice and FPR columns are image means; the gain column is paired and bootstrapped over base runs and groups (ClinicDB: 20 video groups; ETIS: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow; ColonDB: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow; PolypGen: 6 centres for polyp images, 23 negative sequences for normal images; FAR: 444 duplicate-merged patient groups).
 
 ClinicDB mean deployed Dice by (method, λ): DACS λ1 0.699; DACS λ0.5 0.690; MinEnt+MMD λ0.5 0.674; MinEnt+MMD λ1 0.671; DACS λ0.1 0.669; MinEnt+MMD λ0.1 0.666; FDA λ0.1 0.663; FDA λ1 0.650; FDA λ0.5 0.637
 

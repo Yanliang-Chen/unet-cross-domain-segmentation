@@ -9,6 +9,8 @@ dice_fpr.png   deployed Dice against normal-image FPR on PolypGen and FAR: one s
 controls.png   what the control adds: target images in BatchNorm, and more source training (controls.md)
 ablation.png   DACS minus DACS without the cross-domain paste, lambda 0.5 (ablations.md)
 holdout.png    the frozen-rule holdout on PolypDB Hanoi (holdout_polypdb.md)
+new_patients.png  the FAR new-patient test: paired Dice and normal-FPR differences with the pre-set
+               criteria (new_patients_far.md)
 """
 import re
 import numpy as np
@@ -193,10 +195,45 @@ def holdout_figure(path):
     save(fig, path)
 
 
+def new_patients_figure(path):
+    table = sections("new_patients_far.md")
+    primary = [(label.replace(" (deployment rule)", "") + " − source-only continuation (pre-set)", v[0], v[1], COLORS["dacs"])
+               for label, v in table["Pre-set"].items()]
+    secondary = [(label, v[0], v[2], CONT_SOURCE if label.startswith("Source-only") else "#8a8984")
+                 for label, v in table["Secondary"].items()]
+    rows = primary + secondary
+    fig, axes = plt.subplots(1, 2, figsize=(12, 0.42*len(rows)+1.4), sharey=True)
+    for ax, column, scale, title in ((axes[0], 1, 1, "Δ Dice on polyp images"),
+                                     (axes[1], 2, 100, "Δ normal-image FPR (points)")):
+        ax.axvline(0, color=MUTED, linewidth=1)
+        for i, row in enumerate(rows):
+            y = len(rows)-1-i
+            g, lo, hi = row[column]
+            color = row[3]
+            excludes = lo > 0 or hi < 0
+            ax.hlines(y, lo, hi, color=color, linewidth=2)
+            ax.scatter([g], [y], s=40, zorder=3, color=color if excludes else "white",
+                       edgecolor="white" if excludes else color, linewidth=1.6)
+        style(ax, title)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        ax.grid(axis="y", visible=False)
+        ax.axhline(len(rows)-len(primary)-0.5, color=GRID, linewidth=1)
+    axes[1].axvline(5, color=INK, linewidth=1, linestyle="--")
+    axes[0].set_xlabel("Δ Dice; pre-set criterion: lower bound > 0", color=MUTED, fontsize=8)
+    axes[1].set_xlabel("Δ FPR (points); dashed line: pre-set allowed increase, upper bound ≤ +5", color=MUTED, fontsize=8)
+    axes[0].set_yticks(range(len(rows)), [r[0] for r in rows][::-1], fontsize=8, color=INK)
+    axes[1].set_xlim(right=max(9, axes[1].get_xlim()[1]))
+    fig.suptitle("FAR new-patient test (222 held-out patients): paired differences, 95% interval; "
+                 "top two rows = pre-set criteria, open marker = interval includes 0",
+                 x=0.01, ha="left", fontsize=9, color=MUTED)
+    save(fig, path)
+
+
 def main():
     FIGURES.mkdir(parents=True, exist_ok=True)
     for name, draw in (("gains", gains_figure), ("dice_fpr", dice_fpr_figure), ("controls", controls_figure),
-                       ("ablation", ablation_figure), ("holdout", holdout_figure)):
+                       ("ablation", ablation_figure), ("holdout", holdout_figure),
+                       ("new_patients", new_patients_figure)):
         draw(FIGURES/f"{name}.png")
         print("wrote", FIGURES/f"{name}.png")
 

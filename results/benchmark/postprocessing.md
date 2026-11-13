@@ -4,6 +4,8 @@ Each trajectory's Source-Risk pick; predicted 8-connected components smaller tha
 
 ## clinicdb
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 20 video groups.
+
 | Algorithm | Picks | Dice | ΔDice 0.1% [95% CI] | ΔDice 0.41% | Small Dice → 0.1% |
 |---|---|---|---|---|---|
 | source_only | 6 | 0.610 | -0.000 [-0.001, +0.000] | -0.002 | 0.449 → 0.448 |
@@ -13,6 +15,8 @@ Each trajectory's Source-Risk pick; predicted 8-connected components smaller tha
 | fda | 18 | 0.650 | -0.000 [-0.001, +0.000] | -0.001 | 0.470 → 0.470 |
 
 ## etis
+
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
 
 | Algorithm | Picks | Dice | ΔDice 0.1% [95% CI] | ΔDice 0.41% | Small Dice → 0.1% |
 |---|---|---|---|---|---|
@@ -24,6 +28,8 @@ Each trajectory's Source-Risk pick; predicted 8-connected components smaller tha
 
 ## colondb
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+
 | Algorithm | Picks | Dice | ΔDice 0.1% [95% CI] | ΔDice 0.41% | Small Dice → 0.1% |
 |---|---|---|---|---|---|
 | source_only | 6 | 0.444 | -0.001 [-0.002, -0.000] | -0.004 | 0.258 → 0.256 |
@@ -34,6 +40,8 @@ Each trajectory's Source-Risk pick; predicted 8-connected components smaller tha
 
 ## polypgen
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 6 centres for polyp images, 23 negative sequences for normal images.
+
 | Algorithm | Picks | Dice | ΔDice 0.1% [95% CI] | ΔDice 0.41% | Small Dice → 0.1% | Normal FPR | ΔFPR 0.1% [95% CI] (points) | ΔFPR 0.41% |
 |---|---|---|---|---|---|---|---|---|
 | source_only | 6 | 0.582 | -0.001 [-0.001, -0.000] | -0.004 | 0.310 → 0.308 | 24.7% | -3.3 [-4.9, -2.2] | -6.9 |
@@ -43,6 +51,8 @@ Each trajectory's Source-Risk pick; predicted 8-connected components smaller tha
 | fda | 18 | 0.629 | -0.000 [-0.001, +0.000] | -0.002 | 0.346 → 0.346 | 37.1% | -4.8 [-5.8, -3.9] | -10.1 |
 
 ## far
+
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 444 duplicate-merged patient groups.
 
 | Algorithm | Picks | Dice | ΔDice 0.1% [95% CI] | ΔDice 0.41% | Small Dice → 0.1% | Normal FPR | ΔFPR 0.1% [95% CI] (points) | ΔFPR 0.41% |
 |---|---|---|---|---|---|---|---|---|

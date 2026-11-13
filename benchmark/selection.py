@@ -10,7 +10,7 @@ the Source-Risk pick and its loss, and the best and worst other validators.
 """
 import json
 from benchmark.analyze import OUT, VALIDATORS
-from benchmark.report import RESULTS
+from benchmark.report import RESULTS, UNITS
 
 TARGETS = ("clinicdb", "etis", "colondb", "polypgen", "far")
 NAMES = {"clinicdb": "ClinicDB", "etis": "ETIS", "colondb": "ColonDB", "polypgen": "PolypGen", "far": "FAR"}
@@ -47,7 +47,8 @@ def main():
              "across methods; the main results instead fix the method and use Source-Risk only to pick the "
              "checkpoint within each trajectory. `clinicdb/clinicdb_full.md` is the v1 analysis of ClinicDB's "
              "1,860-candidate pool, the only adapted pool with all 19 validators (ClinicDB has no empty masks, "
-             "so v1 = v2 there).", "",
+             "so v1 = v2 there). Oracle and pick Dice are image means; the loss interval resamples groups "
+             "only: " + "; ".join(f"{NAMES[t]}: {UNITS[t]}" for t in TARGETS) + ".", "",
              "| Target | Pool | Methods | Candidates | Validators scored | Oracle Dice | Source-Risk pick | Source-Risk loss [95% CI] | Source-Risk rank | Best other validator | Worst validator |",
              "|---|---|---:|---:|---|---|---|---|---:|---|---|"]
     for s in TARGETS:

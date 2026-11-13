@@ -4,6 +4,8 @@
 
 ## ClinicDB
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 20 video groups.
+
 | Model (λ 0.5) | Dice | Small-polyp Dice |
 |---|---:|---:|
 | DACS | 0.690 | 0.457 |
@@ -17,6 +19,8 @@
 
 ## ETIS
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+
 | Model (λ 0.5) | Dice | Small-polyp Dice |
 |---|---:|---:|
 | DACS | 0.414 | 0.271 |
@@ -27,6 +31,8 @@
 | DACS − DACS without paste | -0.017 [-0.044, +0.008] | -0.027 [-0.069, +0.009] |
 
 ## ColonDB
+
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
 
 | Model (λ 0.5) | Dice | Small-polyp Dice |
 |---|---:|---:|
@@ -39,6 +45,8 @@
 
 ## PolypGen
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 6 centres for polyp images, 23 negative sequences for normal images.
+
 | Model (λ 0.5) | Dice | Small-polyp Dice | Normal FPR |
 |---|---:|---:|---:|
 | DACS | 0.618 | 0.353 | 25.5% |
@@ -49,6 +57,8 @@
 | DACS − DACS without paste | -0.008 [-0.018, +0.001] | -0.011 [-0.035, +0.012] | +9.0 [+0.7, +20.9] |
 
 ## FAR
+
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 444 duplicate-merged patient groups.
 
 | Model (λ 0.5) | Dice | Small-polyp Dice | Normal FPR |
 |---|---:|---:|---:|

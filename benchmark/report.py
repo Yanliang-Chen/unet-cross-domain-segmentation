@@ -21,6 +21,19 @@ POOLS = ("source_only", "uda_adabn", "uda_minent", "uda_advent", "uda_dann", "ud
 METRICS = ("dice", "group_dice", "iou", "small_dice", "fpr_any", "fpr_area", "empty_fpr", "auroc")
 BOOTSTRAP, SEED = 2000, 20261101
 LATE = ("continue_source", "dacs_nopaste", "dacs_noweight")
+# Resampling unit of every paired interval (levels are always plain image means)
+UNITS = {"clinicdb": "20 video groups",
+         "etis": "single images: no video ids, so adjacent frames count as independent and intervals may be too narrow",
+         "colondb": "single images: no video ids, so adjacent frames count as independent and intervals may be too narrow",
+         "polypgen": "6 centres for polyp images, 23 negative sequences for normal images",
+         "far": "444 duplicate-merged patient groups",
+         "polypdb": "256 patients",
+         "far_split": "222 held-out patients"}
+
+
+def unit_note(scenario):
+    return (f"Levels are image means. Paired differences are averaged per group and bootstrapped jointly over "
+            f"base runs and groups; groups here: {UNITS[scenario]}.")
 
 
 def base_run(row):
@@ -79,8 +92,9 @@ def paired(rows, units):
 
 def markdown_paired(table, scenario):
     lines = [f"# Paired gains on {scenario}: Source-Risk pick per trajectory",
-             "", "Gain = per-group Dice difference to the same base run's pick, averaged over lambdas; "
-             f"95% interval from {BOOTSTRAP} joint bootstrap draws over base runs and image groups.", "",
+             "", "Pick Dice and Normal FPR are image means. Gain = per-group Dice difference to the same base "
+             f"run's pick, averaged over lambdas; 95% interval from {BOOTSTRAP} joint bootstrap draws over base "
+             f"runs and groups. Groups: {UNITS[scenario]}.", "",
              "| Algorithm | Trajectories | Pick Dice | Normal FPR | vs control [95% CI] | Wins | vs SourceOnly [95% CI] | Wins |",
              "|---|---:|---:|---:|---|---:|---|---:|"]
     for r in table:

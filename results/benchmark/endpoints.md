@@ -4,6 +4,8 @@ Deployed Source-Risk picks; each cell is the method's mean level, then the paire
 
 ## ClinicDB (427 polyp images, 36 small)
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 20 video groups.
+
 | Method | Dice | Small-polyp Dice | Verdict |
 |---|---|---|---|
 | SourceOnly | 0.610 | 0.449 | reference |
@@ -18,6 +20,8 @@ Deployed Source-Risk picks; each cell is the method's mean level, then the paire
 | AdaBN | 0.606 +0.008 [-0.080, +0.096] | 0.270 -0.134 [-0.294, +0.024] | not enough evidence |
 
 ## ETIS (196 polyp images, 100 small)
+
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
 
 | Method | Dice | Small-polyp Dice | Verdict |
 |---|---|---|---|
@@ -34,6 +38,8 @@ Deployed Source-Risk picks; each cell is the method's mean level, then the paire
 
 ## ColonDB (380 polyp images, 97 small)
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: single images: no video ids, so adjacent frames count as independent and intervals may be too narrow.
+
 | Method | Dice | Small-polyp Dice | Verdict |
 |---|---|---|---|
 | SourceOnly | 0.444 | 0.258 | reference |
@@ -49,6 +55,8 @@ Deployed Source-Risk picks; each cell is the method's mean level, then the paire
 
 ## PolypGen (1412 polyp images, 293 small, 1755 normal, 125 empty-mask)
 
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 6 centres for polyp images, 23 negative sequences for normal images.
+
 | Method | Dice | Small-polyp Dice | Normal FPR (any) | Normal FPR (area ≥0.1%) | Empty-mask FPR | Verdict |
 |---|---|---|---|---|---|---|
 | SourceOnly | 0.582 | 0.310 | 24.7% | 21.6% | 53.1% | reference |
@@ -60,6 +68,8 @@ Deployed Source-Risk picks; each cell is the method's mean level, then the paire
 | AdaBN | 0.504 -0.059 [-0.117, -0.003] | 0.196 -0.110 [-0.171, -0.051] | 82.2% +57.9 [+49.3, +66.8] | 80.2% +59.0 [+50.1, +68.7] | 92.4% +36.1 [+14.4, +58.6] | worse (Dice ↓, FPR ↑) |
 
 ## FAR (432 polyp images, 123 small, 7749 normal)
+
+Levels are image means. Paired differences are averaged per group and bootstrapped jointly over base runs and groups; groups here: 444 duplicate-merged patient groups.
 
 | Method | Dice | Small-polyp Dice | Normal FPR (any) | Normal FPR (area ≥0.1%) | Verdict |
 |---|---|---|---|---|---|
