@@ -24,6 +24,7 @@
 - 小连通域后处理（删除小于图像 0.1% 的预测块，事前固定）不改变 Dice，正常图误报 FAR 降 5–7 个百分点、PolypGen 降 4–5 个百分点。
 - 继续训练对照偏弱：目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降，正常图误报 PolypGen +51、FAR +19 个百分点）。换成不用目标数据的纯源域继续训练后，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
 - DACS 消融：跨域粘贴没有帮助（去掉后 Dice 不变、小息肉更好、FAR 误报更低），起作用的是 EMA 教师的硬伪标签自训练。
+- **独立确认：** 事前冻结的规则（DACS λ=1、按源验证选检查点）在从未使用的 PolypDB 河内中心（1,000 张，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6 条轨迹。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
 - 无标签选模：在 9 个全覆盖验证器中源验证在 4/5 个目标上损失最小，但跨方法全局选模常选中对照检查点；按方法固定、只在轨迹内选检查点更可靠。
 - v2 修正了 PolypGen 125 张空掩码图被算作阳性和小息肉的问题，见 [results/benchmark/metric_correction.md](results/benchmark/metric_correction.md)。
 
@@ -36,7 +37,7 @@
 | [项目总览与实验设计.md](项目总览与实验设计.md) | 研究问题、数据、方法、评价、全部结果、剩余工作、局限、参考文献（报告格式） |
 | [EXPERIMENT_PROPOSAL.md](EXPERIMENT_PROPOSAL.md) | 英文实验方案：假设、已完成、待做与判定规则 |
 | [benchmark_protocol.yaml](benchmark_protocol.yaml) | 事前固定的场景、方法、部署规则、指标与验证器设置 |
-| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、`h2.md`、`endpoints.md`、`selection.md`、`deployment.md`、`controls.md`、`ablations.md`、`metric_correction.md`、后处理与曲线表、`figures/` 中的全部图 |
+| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、`h2.md`、`endpoints.md`、`selection.md`、`deployment.md`、`controls.md`、`ablations.md`、`holdout_polypdb.md`、`metric_correction.md`、后处理与曲线表、`figures/` 中的全部图 |
 | [每日进度.md](每日进度.md) | 每天的完成情况和下一步 |
 | [失败方法记录.md](失败方法记录.md) | 2026-10-31 之前 18 类未达目标的尝试（报告附录） |
 
@@ -58,6 +59,7 @@
 | `python -m benchmark.summary_figures` | 汇总图：各目标收益与区间、PolypGen/FAR 的 Dice–误报散点（`results/benchmark/figures/`） |
 | `python -m benchmark.compare` | 协议 v2：H2 直接比较、完整终点、事后部署规则、纯源域继续训练对照与 DACS 消融（`h2.md`、`endpoints.md`、`deployment.md`、`controls.md`、`ablations.md`） |
 | `python -m benchmark.selection` | 协议 v2：统一选模表（先运行 `benchmark.analyze` 的 `v2_source_only` 与 `v2_all`） |
+| `python -m benchmark.holdout` | 第 3 阶段：PolypDB 河内留出集的一次性评价（`holdout_polypdb.md`；数据需放在 `data/PolypDB/`） |
 | `python -m benchmark.qualitative` | 按固定规则选图的定性例子（`results/benchmark/figures/qualitative_<场景>.png`） |
 | `bash benchmark/run_scenario.sh <场景> <方法...>` | 一个场景的对照、适应、打分与分析全流程（环境变量 `LAMS`、`EVERY` 可选） |
 | `python -m benchmark.extra --pool <池>` | 可选：瓶颈特征、CMR-TTD、MixVal 等第二轮验证器 |

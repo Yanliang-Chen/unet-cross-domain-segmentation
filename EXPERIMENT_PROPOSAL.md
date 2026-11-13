@@ -354,7 +354,7 @@ How it works:
 | PolypGen | 0.631 | 16.0% | +0.040 [+0.022, +0.061] | 0.616 / 30.8% |
 | FAR (λ=0.5 only) | 0.570 | 45.6% | +0.063 [+0.035, +0.091] | 0.521 / 59.7% |
 
-Every target was seen before the rule was written, so this is not a confirmation. The planned CVC-300 holdout turned out to be a subset of CVC-ColonDB (task 12), so no independent test exists yet.
+Every target was seen before the rule was written, so this is not a confirmation on them. The rule was then frozen and confirmed once on an unused PolypDB centre (4.15).
 
 ### 4.14 Phase 2 (2026-11-13): source-only continuation and DACS ablations
 
@@ -393,9 +393,35 @@ Scope fixed in the protocol (amendment_v2, phase-2 note) before any run.
 - **What works in DACS is EMA-teacher hard pseudo-label self-training with colour jitter.**
 - **The variant without the paste improves both Dice and FPR on FAR.** This is a post hoc finding on two targets at one λ.
 
+### 4.15 Phase 3 (2026-11-13): independent holdout on PolypDB Hanoi
+
+- **Why not CVC-300.** It is a subset of CVC-ColonDB (60/60 near-duplicates), so it was replaced.
+- **Data.** The Hanoi Medical University / IGH white-light images from PolypDB (Jha et al. 2024, public on OSF): 1,000 images, 256 patients, Fujinon endoscope.
+  - PolypDB's Norwegian centre is excluded because it is the same hospital as the Kvasir-SEG source.
+  - No image has a near-copy among any data used before.
+- **Frozen in advance.** The rule and analysis were committed before any prediction (8646770) and evaluated once.
+- **Setting.** Transductive; the bootstrap resamples the 256 patients.
+- **Table:** `results/benchmark/holdout_polypdb.md`.
+
+| Model | Mean Dice (6 runs) | Small-polyp Dice | Single deployed model |
+|---|---:|---:|---:|
+| SourceOnly | 0.751 | 0.528 | 0.771 |
+| Source-only continuation | 0.774 | 0.547 | 0.784 |
+| **DACS λ=1 (primary rule)** | **0.788** | **0.575** | **0.795** |
+| DACS without paste λ=0.5 | 0.790 | 0.570 | 0.791 |
+
+- **Primary test confirmed:** DACS λ=1 vs SourceOnly +0.035 [+0.023, +0.049], 6/6 runs; small polyps +0.063 [+0.022, +0.108].
+- **Secondary, declared in advance:**
+  - DACS λ=1 vs source-only continuation +0.012 [+0.003, +0.022], small polyps +0.040 [+0.009, +0.074].
+  - DACS without paste matches the primary rule.
+- **Limits.**
+  - One new centre, transductive.
+  - No normal images, so false positives are not independently tested.
+  - SourceOnly is already high (0.751), so the gain is smaller than on ETIS or ColonDB.
+
 ## 5. In progress
 
-Nothing running. Phases 0–2 finished 2026-11-13 (4.13, 4.14). Phase 3 as planned is invalid: CVC-300 is a subset of CVC-ColonDB (60/60 near-duplicates), so an independent holdout needs a dataset not yet on disk.
+Nothing running. Phases 0–3 finished 2026-11-13 (4.13–4.15). Next: phase 4 (reproducibility) and the write-up.
 
 ## 6. Remaining work
 
@@ -412,7 +438,7 @@ Nothing running. Phases 0–2 finished 2026-11-13 (4.13, 4.14). Phase 3 as plann
 | 9 | ~~Amendment v2, CPU part: metric correction, H2 direct comparisons, endpoints, unified selection table, post hoc deployment rule~~ (done, see 4.13) | Credibility | CPU | Nov 13 |
 | 10 | ~~Source-only continued training (6 runs, no target forward), scored on all targets~~ (done, see 4.14) | Separates more source training from target BatchNorm; FDA's proper control | ≈ 0.5 h GPU | Nov 13 |
 | 11 | ~~DACS ablations (no paste; no confidence weight) on ClinicDB and FAR, λ=0.5~~ (done, see 4.14); MinEnt+MMD balance dropped by the protocol note | Mechanism | ≈ 1 h GPU | Nov 13 |
-| 12 | Frozen-rule holdout. **CVC-300 cancelled:** a near-duplicate check matches all 60 images to CVC-ColonDB frames, which were already used for adaptation and evaluation. PolypGen positive sequences share videos with the evaluated single frames. A valid holdout needs a new dataset. | Independent confirmation | ≈ 0.5 h GPU once data exist | pending decision |
+| 12 | ~~Frozen-rule holdout~~ (done, see 4.15): CVC-300 cancelled (subset of CVC-ColonDB); PolypDB Hanoi centre used instead, primary test confirmed | Independent confirmation | ≈ 40 min GPU | Nov 13 |
 | 13 | Reproducibility: data manifests with hashes, split code back, deployed-model list, per-image CSVs | Reproducibility | CPU | phase 4 |
 | 14 | Write-up: method, results, limitations; the earlier 18 attempts move to an appendix ([失败方法记录.md](失败方法记录.md)) | Report | – | phase 5 |
 
@@ -427,6 +453,6 @@ Nothing running. Phases 0–2 finished 2026-11-13 (4.13, 4.14). Phase 3 as plann
 - **Colonoscopy only.** "Domains" means hospitals, devices and cohorts within colonoscopy, not other imaging modalities.
 - **Strict evaluation.** Small model, native resolution, and plain per-image Dice. Absolute numbers are lower than in papers that train on ClinicDB or evaluate at 352×352; conclusions rest on paired gains, not absolute Dice.
 - **What the control controls for.** The control forwards source and target images together, and target images in BatchNorm turned out to hurt on its own (4.14), so gains over the control are inflated. Source-only continued training is the stronger, target-free reference. Every method with a joint forward pass carries the same BatchNorm mixing; that effect is not separated per method.
-- **Development evidence vs confirmation.** ClinicDB and FAR were used for method development before 2026-11-01; PolypGen's λ 0.1/1 runs and the deployment rule were added after seeing results; four targets are transductive. None of this is an independent confirmation, and the planned CVC-300 holdout is a subset of CVC-ColonDB (task 12).
+- **Development evidence vs confirmation.** ClinicDB and FAR were used for method development before 2026-11-01; PolypGen's λ 0.1/1 runs and the deployment rule were added after seeing results; four targets are transductive. The only independent confirmation is the frozen rule on PolypDB Hanoi (4.15): one centre, transductive, Dice only (no normal images).
 - **Validator coverage.** The 19-validator comparison holds only for ClinicDB's v1 pool; the current pools have 9 validators scored for every candidate.
 - **Not done on purpose:** architecture comparisons (UNet++, nnU-Net), which would change the fixed network and the research question.
