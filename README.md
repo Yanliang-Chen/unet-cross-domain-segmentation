@@ -1,121 +1,150 @@
-# 域偏移下的息肉分割：固定 U-Net 的无监督域适应
+# Unsupervised Domain Adaptation for Polyp Segmentation with a Fixed U-Net
 
-源域 Kvasir-SEG 有标签，目标医院/设备（CVC-ClinicDB、ETIS、CVC-ColonDB、PolypGen、FAR）只有无标签图片。本项目研究：无监督域适应能否让**原始 U-Net**（基础通道 16、4 层、输入 256，结构固定）在新域上稳定地比“继续训练”分割得更好，以及适应后的模型能否不用目标标签选出来。
+Can a plain U-Net trained on one hospital's colonoscopy images be adapted to new hospitals, devices and patients, using only their **unlabelled** images, so that it segments polyps better than if it were simply trained longer? And does adaptation raise false positives on normal images?
 
-每个方法都与同起点、同步数、无目标损失的**继续训练对照**以及完全不用目标数据的**纯源域继续训练**配对比较，部署的检查点按源验证 Dice 事前固定的规则选择，目标标签只用于最终评价。
+This repository holds the code, pre-registered protocol and results of a benchmark that answers this:
 
-## 当前结果（2026-11-13，协议修正 v2）
+- the **U-Net is fixed** (Ronneberger et al.; base width 16, depth 4, 256×256 input);
+- 11 adaptation methods are compared on 5 target domains;
+- every deployed model is paired with two references: a matched continued-training control, and a source-only continuation that never sees target data;
+- the main claims are checked by two tests frozen before any run.
 
-部署 Dice（阳性图，每条轨迹按源验证选检查点，6 条源轨迹的均值；括号内为正常图误报）：
+## Key results
 
-| 方法 | ClinicDB | ETIS | ColonDB | PolypGen | FAR | PolypDB 河内（留出） |
+Deployed Dice on polyp images; mean of 6 source runs. Normal-image false-positive rate in brackets.
+
+| Method | ClinicDB | ETIS | ColonDB | PolypGen | FAR | PolypDB Hanoi (holdout) |
 |---|---:|---:|---:|---:|---:|---:|
-| DACS | 0.686 | 0.403 | 0.609 | 0.617（37%） | 0.565（45%） | 0.788 ¹ |
-| DACS 去掉粘贴（λ=0.5） | 0.700 | 0.431 | 0.580 | 0.624（16%） | 0.570（36%） | 0.790 |
-| MinEnt+MMD | 0.670 | 0.412 | 0.568 | 0.615（40%） | 0.542（65%） | – |
-| FDA | 0.650 | 0.430 | 0.508 | 0.629（37%） | 0.563（54%） | – |
-| MinEnt | 0.664 | 0.393 | 0.534 | – | – | – |
-| MMD | 0.658 | 0.388 | 0.541 | – | – | – |
-| 纯源域继续训练（不用目标数据） | 0.654 | 0.379 | 0.514 | 0.601（27%） | 0.533（54%） | 0.774 |
-| 继续训练对照（目标图进入 BatchNorm） | 0.637 | 0.338 | 0.435 | 0.615（79%） | 0.492（74%） | – |
-| SourceOnly | 0.610 | 0.366 | 0.444 | 0.582（25%） | 0.510（57%） | 0.751 |
+| DACS | 0.686 | 0.403 | 0.609 | 0.617 (37%) | 0.565 (45%) | 0.788 |
+| DACS without paste (λ=0.5) | 0.700 | 0.431 | 0.580 | 0.624 (16%) | 0.570 (36%) | 0.790 |
+| MinEnt+MMD | 0.670 | 0.412 | 0.568 | 0.615 (40%) | 0.542 (65%) | – |
+| FDA | 0.650 | 0.430 | 0.508 | 0.629 (37%) | 0.563 (54%) | – |
+| Source-only continuation | 0.654 | 0.379 | 0.514 | 0.601 (27%) | 0.533 (54%) | 0.774 |
+| Continued-training control | 0.637 | 0.338 | 0.435 | 0.615 (79%) | 0.492 (74%) | – |
+| SourceOnly | 0.610 | 0.366 | 0.444 | 0.582 (25%) | 0.510 (57%) | 0.751 |
 
-方法行对 λ 0.1 / 0.5 / 1 取平均（FAR 只有 λ=0.5）；“DACS 去掉粘贴”只有 λ=0.5，不能与平均值直接比大小。¹ 留出集上是事前冻结的部署规则 DACS λ=1。PolypGen 只算掩码非空的 1,412 张图（v2 修正，见 [metric_correction.md](results/benchmark/metric_correction.md)）。表中数字是逐图均值；下文的区间来自按组配对、对源轨迹和组联合 bootstrap 的差值。每个终点只重抽样在该终点有图的组：ClinicDB 为视频（Dice 20 个，小息肉 9 个）；PolypGen 息肉图按 6 个中心，正常图按 10 个阴性序列；FAR 的 Dice 在 186 名有息肉图的患者上，误报在 444 名患者上；PolypDB 为 256 名患者；FAR 新患者测试的 Dice 在 93 名有息肉图的患者上，误报在 222 名上。ETIS、ColonDB 没有视频编号，只能按单张图片重抽样，区间可能偏窄。
+- **Adaptation helps.**
+  - DACS beats SourceOnly on all five targets (+0.032 to +0.165 Dice).
+  - It beats the target-free source-only continuation on four of them.
+- **Confirmed on unseen data.** Both tests were frozen in a commit before any run and evaluated once:
+  - **New hospital** (PolypDB Hanoi): DACS λ=1 over SourceOnly, +0.035 [+0.023, +0.049].
+  - **New patients** (FAR, 222 patients never used for adaptation), against source-only continuation:
+    - DACS λ=1: Dice +0.042 [+0.013, +0.073], false positives −8.2 [−15.5, −0.7] points;
+    - DACS without paste: Dice +0.036 [+0.010, +0.062], false positives −12.7 [−15.7, −9.9] points.
+- **What works.** Teacher pseudo-label self-training is the active part of DACS. The cross-domain paste helps only on ColonDB and adds 7–9 points of false positives.
+- **Caveats.**
+  - Letting target images into BatchNorm, with no target loss, hurts by itself: up to +51 points of false positives. The usual "continued training" control therefore overstates gains.
+  - On PolypGen every method raises false positives over SourceOnly.
+  - Choosing a checkpoint within one method is reliable; choosing among methods without labels is not.
 
-- **相对 SourceOnly：** DACS、MinEnt+MMD 在 5/5 个目标上区间不含零，FDA 4/5。
-- **对照偏弱：** 继续训练对照里，目标图只进入 BatchNorm 本身有害（ColonDB、FAR 上 Dice 下降；正常图误报 PolypGen +51、FAR +19 个百分点）。相对不用目标数据的纯源域继续训练，DACS 仍在 4/5 个目标上显著更好，MinEnt+MMD 3/5，FDA 2/5。
-- **组合方法：** 与事前指定的单一方法直接比较，DACS、MinEnt+MMD 只在 ColonDB 上全部胜出；“组合更好”只有均值支持。
-- **DACS 消融：** 跨域粘贴只在 ColonDB 上提高 Dice（+0.044），其余 4 个目标上没有帮助，并在 PolypGen、FAR 上增加正常图误报 8–9 个百分点；主要起作用的是 EMA 教师的硬伪标签自训练。
-- **正常图误报（转导）：** 同时提高 Dice 并降低误报的只有 DACS 在 FAR 上；PolypGen 上三种方法的误报都比 SourceOnly 高 11–15 个百分点。小连通域后处理（事前固定）不改变 Dice，误报 FAR 降 5–7、PolypGen 降 4–5 个百分点。
-- **独立确认：** 事前冻结的规则在从未使用的 PolypDB 河内中心（1,000 张，256 名患者，新医院、新内镜）上通过：相对 SourceOnly +0.035 [+0.023, +0.049]，6/6；相对纯源域继续训练 +0.012 [+0.003, +0.022]。原计划的 CVC-300 是 CVC-ColonDB 的子集，已取消。
-- **新患者检验（FAR，事前冻结）：** 适应只用一半患者的无标签图，在另一半 222 名从未参与适应的患者上测量（198 张息肉图来自其中 93 名患者，3,967 张正常图；Dice 在 93 名、误报在 222 名患者上分组 bootstrap）。相对纯源域继续训练，DACS λ=1：Dice +0.042 [+0.013, +0.073]，误报 −8.2 [−15.5, −0.7] 个百分点；去掉粘贴的 DACS λ=0.5：Dice +0.036 [+0.010, +0.062]，误报 −12.7 [−15.7, −9.9]。两者都满足事前标准（Dice 下界 > 0，误报增幅上界 ≤ +5）。粘贴在新患者上同样增加误报 +7.0 [+1.5, +13.0]。局限：与适应患者同院同设备，FAR 曾用于开发。
-- **怎样选检查点（H4，辅助）：** 部署规则在每条轨迹内按源验证选检查点，DACS、MinEnt+MMD、FDA 平均只比轨迹内最佳低 0.004–0.032；低 ≥ 0.05 的失败集中在 ETIS（7/54 条）和 ColonDB（5/54），PolypGen、FAR 上没有。跨方法全局选模不可靠：原协议候选池里常选中对照（ColonDB 损失 0.224）；加入后来的模型的完整候选池只在 FAR 上改选（去掉粘贴的 DACS）。
+Paired 95% intervals bootstrap jointly over source runs and patient/video/centre groups. See [REPORT_BASIS.md](REPORT_BASIS.md) for every number, its source table and the limitations.
 
-### 图
+![Paired gains per target](results/benchmark/figures/gains.png)
 
-| 图 | 内容 |
-|---|---|
-| [gains.png](results/benchmark/figures/gains.png) | 各方法在五个目标上相对 SourceOnly、继续训练对照、纯源域继续训练的配对收益与 95% 区间 |
-| [controls.png](results/benchmark/figures/controls.png) | 对照拆解：目标图进入 BatchNorm 的影响与多训练源域的影响（Dice、正常图误报） |
-| [ablation.png](results/benchmark/figures/ablation.png) | DACS 去掉跨域粘贴的消融（Dice、小息肉 Dice、正常图误报） |
-| [holdout.png](results/benchmark/figures/holdout.png) | PolypDB 河内留出集上的事前冻结检验 |
-| [new_patients.png](results/benchmark/figures/new_patients.png) | FAR 新患者检验：配对 Dice 与正常图误报差值及事前标准 |
-| [dice_fpr.png](results/benchmark/figures/dice_fpr.png) | PolypGen、FAR 上部署 Dice 与正常图误报 |
-| [lambda.png](results/benchmark/figures/lambda.png)、[step_curves.png](results/benchmark/figures/step_curves.png)、[step_fpr.png](results/benchmark/figures/step_fpr.png) | λ 敏感性与训练步数曲线 |
-| `qualitative_<目标>.png` | 按固定规则选图的定性例子（[选图清单](results/benchmark/qualitative.md)） |
+![FAR new-patient test](results/benchmark/figures/new_patients.png)
 
-![各目标的配对收益](results/benchmark/figures/gains.png)
+## Repository structure
 
-![PolypDB 河内留出集](results/benchmark/figures/holdout.png)
+```
+├── train.py, select_model.py, utils.py   source U-Net training and source-validation selection
+├── models/unet.py                        the fixed U-Net
+├── datasets/                             dataset file helpers and readers
+├── scripts/                              data preparation, source-run matrix, environment setup
+├── benchmark/                            adaptation methods, scoring, validators, analysis, tables, figures
+│   ├── uda.py                            11 UDA methods, control, source-only continuation, DACS ablations
+│   ├── validators.py                     19 label-free validators
+│   ├── splits/                           PolypGen normal hold-out, FAR patient groups and patient split
+│   └── ...                               one module per analysis (see Usage)
+├── protocol.yaml                         source-model protocol and data split hashes
+├── benchmark_protocol.yaml               pre-registered benchmark rules, including amendment v2
+├── results/
+│   ├── benchmark/                        result tables (*.md, candidates.csv) and figures/
+│   ├── manifests/                        data manifests with SHA-256, deployed models, environment
+│   └── per_image/                        per-image results of every deployed model
+└── REPORT_BASIS.md                       full results, discussion and references for the report
+```
 
-![FAR 新患者检验](results/benchmark/figures/new_patients.png)
+Datasets, checkpoints and score caches are not in the repository. They live in the git-ignored `data/` and `runs/`.
 
-完整设计、结果与局限见[项目总览与实验设计](项目总览与实验设计.md)。
+## Installation
 
-## 文档
+Tested on Windows 11, Python 3.11, PyTorch 2.11 with CUDA 12.8 on an RTX 5070. The full environment is in [results/manifests/environment.txt](results/manifests/environment.txt).
 
-| 文件 | 内容 |
-|---|---|
-| [项目总览与实验设计.md](项目总览与实验设计.md) | 研究问题、数据、方法、评价、全部结果、剩余工作、局限、参考文献（报告格式） |
-| [EXPERIMENT_PROPOSAL.md](EXPERIMENT_PROPOSAL.md) | 英文实验方案：假设、已完成、待做与判定规则 |
-| [benchmark_protocol.yaml](benchmark_protocol.yaml) | 事前固定的场景、方法、部署规则、指标与验证器设置 |
-| [results/benchmark/](results/benchmark/) | 各目标的逐候选分数（`candidates.csv`）、配对收益表（`paired.md`）、`h2.md`、`endpoints.md`、`selection.md`、`deployment.md`、`controls.md`、`ablations.md`、`holdout_polypdb.md`、`new_patients_far.md`、`metric_correction.md`、后处理与曲线表、`figures/` 中的全部图 |
-| [results/manifests/](results/manifests/)、[results/per_image/](results/per_image/) | 数据清单与哈希、部署模型清单、运行环境；部署模型的逐图结果 |
-| [每日进度.md](每日进度.md) | 每天的完成情况和下一步 |
-| [失败方法记录.md](失败方法记录.md) | 2026-10-31 之前 18 类未达目标的尝试（报告附录） |
+```powershell
+.\scripts\setup_windows.ps1
+```
 
-## 代码
-
-| 入口 | 用途 |
-|---|---|
-| `train.py`、`select_model.py` | 源域 U-Net 训练（A0/A1 × 种子 42/43/44）与源验证选模 |
-| `python -m benchmark.data` | 构建各场景的 256 图像缓存与原尺寸掩码 |
-| `python -m benchmark.uda grid --scenario <场景> --algorithms <方法...>` | AdaBN + 适应方法 × λ × 6 条源轨迹；`--lams`、`--every` 控制 λ 与检查点间隔 |
-| `python -m benchmark.uda train --algorithm continue --scenario <场景> --lams 0` | 继续训练对照 |
-| `python -m benchmark.uda train --algorithm continue_source --scenario all --lams 0` | 纯源域继续训练（不前向目标图，训练一次、在所有目标上打分） |
-| `python -m benchmark.uda train --algorithm dacs_nopaste\|dacs_noweight --scenario <场景> --lams 0.5` | DACS 消融 |
-| `python -m benchmark.score run --pool <池> --scenarios source_val <场景>` | 原尺寸指标与验证器打分 |
-| `python -m benchmark.analyze --pools <池...> --name <名>` | Oracle、选模差距与区间、标注预算 |
-| `python -m benchmark.report --scenario <场景>` | 写入 `results/benchmark/<场景>/` 的配对收益表 |
-| `python -m benchmark.postprocess` | 部署模型的小连通域后处理（`results/benchmark/postprocessing.md`） |
-| `python -m benchmark.curves` | λ、训练步数曲线与小息肉 Dice（只读 `candidates.csv`，写 `results/benchmark/curves.md` 与 `figures/`） |
-| `python -m benchmark.summary_figures` | 汇总图：`gains`、`controls`、`ablation`、`holdout`、`new_patients`、`dice_fpr`（`results/benchmark/figures/`） |
-| `python -m benchmark.compare` | 协议 v2：H2 直接比较、完整终点、事后部署规则、纯源域继续训练对照与 DACS 消融（`h2.md`、`endpoints.md`、`deployment.md`、`controls.md`、`ablations.md`） |
-| `python -m benchmark.selection` | H4：轨迹内选点的遗憾与失败，以及三个候选池上的跨方法选模（先运行 `benchmark.analyze` 的 `v2_source_only`、`v2_all`（原协议候选池）与 `v2_full`（完整候选池）） |
-| `python -m benchmark.holdout` | 第 3 阶段：PolypDB 河内留出集的一次性评价（`holdout_polypdb.md`；数据需放在 `data/PolypDB/`） |
-| `python -m benchmark.newpatients` | FAR 新患者检验的一次性评价（场景 `far_split`，划分见 `benchmark/splits/far_patient_split.csv`；写 `new_patients_far.md`） |
-| `python -m benchmark.qualitative` | 按固定规则选图的定性例子（`results/benchmark/figures/qualitative_<场景>.png`） |
-| `bash benchmark/run_scenario.sh <场景> <方法...>` | 一个场景的对照、适应、打分与分析全流程（环境变量 `LAMS`、`EVERY` 可选） |
-| `python -m benchmark.extra --pool <池>` | 可选：瓶颈特征、CMR-TTD、MixVal 等第二轮验证器 |
-
-方法实现集中在 [benchmark/uda.py](benchmark/uda.py)（AdaBN、MinEnt、AdvEnt、DANN、MMD、BNM、MCC、Mean Teacher、FDA、MinEnt+MMD、DACS、继续训练对照），验证器在 [benchmark/validators.py](benchmark/validators.py)。源模型训练与数据准备在根目录和 `scripts/`：`prepare_polyp_data.py` 划分 Kvasir/ClinicDB，`run_matrix.py` 按 `protocol.yaml` 训练 6 条源轨迹，`check_protocol.py` 校验划分。
-
-## 复现说明
-
-以下是重建结果所需的数据、划分和命令。尚未在新机器上从头完整重跑验证。目前做过的核对有两项：划分文件改为从 `benchmark/splits/` 读取后与原先逐行一致；`benchmark.manifest verify` 只用 Git 中的文件重算出 ClinicDB 上 DACS 相对 SourceOnly 的收益 +0.082，与 `paired.md` 相同。
-
-**数据（不在仓库中，放在 `data/` 下）。** 原始压缩包的大小和 SHA-256 见 [results/manifests/archives.csv](results/manifests/archives.csv)；每个场景用到的每张图片（相对 `data/` 的路径、组、角色、SHA-256）见 `results/manifests/<场景>.csv`。
-
-| 数据 | 来源 | 本地压缩包 |
-|---|---|---|
-| Kvasir-SEG（源域） | [Simula](https://datasets.simula.no/kvasir-seg/) | `kvasir-seg.zip` |
-| CVC-ClinicDB | [CVC](https://pages.cvc.uab.es/CVC-Colon/index.php/databases/) | `CVC/CVC-ClinicDB_datasets.zip` |
-| CVC-ColonDB、ETIS-LaribPolypDB | PraNet 测试集（[PraNet](https://github.com/DengPingFan/PraNet)） | `TestDataset.zip` |
-| PolypGen（C1–C6 单帧 + 阴性序列） | Ali 等，[Scientific Data 2023](https://www.nature.com/articles/s41597-023-01981-y) | `PolypGen2021_MultiCenterData_v3.zip` |
-| FAR-POLYP-SEG | [Zenodo](https://doi.org/10.5281/zenodo.20284781) | `FAR-POLYP-SEG/Dataset.zip` |
-| PolypDB（只用河内中心白光图，留出集） | [OSF](https://osf.io/pr7ms/)，数据集未注明许可，仅作研究使用 | `PolypDB/PolypDB.zip` |
-
-**划分。** 源域与 ClinicDB 的划分由 `scripts/prepare_polyp_data.py` 生成并由 `protocol.yaml` 中的 SHA-256 锁定，具体文件见 `results/manifests/source_train.csv`、`source_val.csv`、`clinicdb.csv`。PolypGen 正常图留出集和 FAR 患者分组在 [benchmark/splits/](benchmark/splits/)，`benchmark/data.py` 直接读取，不再依赖 `runs/`。
-
-**从头运行（GPU）。** 先按下方“环境”一节建好环境，然后依次运行：
+Or manually: install PyTorch for your CUDA version from [pytorch.org](https://pytorch.org/get-started/locally/), then:
 
 ```bash
-.venv/Scripts/python.exe -m scripts.run_matrix
+pip install -r requirements.txt
+```
+
+## Data
+
+Download the archives below into `data/`. Their sizes and SHA-256 hashes are in [results/manifests/archives.csv](results/manifests/archives.csv). Every image used per scenario (path, group, role, SHA-256) is listed in `results/manifests/<scenario>.csv`.
+
+| Dataset | Role | Source | Archive |
+|---|---|---|---|
+| Kvasir-SEG | source | [Simula](https://datasets.simula.no/kvasir-seg/) | `kvasir-seg.zip` |
+| CVC-ClinicDB | target (inductive split) | [CVC](https://pages.cvc.uab.es/CVC-Colon/index.php/databases/) | `CVC/CVC-ClinicDB_datasets.zip` |
+| CVC-ColonDB, ETIS-LaribPolypDB | targets | PraNet test set ([PraNet](https://github.com/DengPingFan/PraNet)) | `TestDataset.zip` |
+| PolypGen (C1–C6 + negative sequences) | target | Ali et al., [Scientific Data 2023](https://www.nature.com/articles/s41597-023-01981-y) | `PolypGen2021_MultiCenterData_v3.zip` |
+| FAR-POLYP-SEG | target, new-patient test | [Zenodo](https://doi.org/10.5281/zenodo.20284781) | `FAR-POLYP-SEG/Dataset.zip` |
+| PolypDB (Hanoi centre, white light only) | frozen holdout | [OSF](https://osf.io/pr7ms/), no licence stated, research use only | `PolypDB/PolypDB.zip` |
+
+Splits:
+- **Source and ClinicDB:** generated by `scripts/prepare_polyp_data.py` and locked by SHA-256 in `protocol.yaml`.
+- **PolypGen and FAR:** the normal-image hold-out and patient groups are in [benchmark/splits/](benchmark/splits/).
+
+## Usage
+
+Build the scenario caches, train the six source runs and register them:
+
+```bash
+python -m benchmark.data
 ```
 
 ```bash
-.venv/Scripts/python.exe -m benchmark.score register-source
+python -m scripts.run_matrix
 ```
+
+```bash
+python -m benchmark.score register-source
+```
+
+Run one target end to end (control, adaptation methods, scoring, analysis). `LAMS` and `EVERY` set λ values and checkpoint spacing:
+
+```bash
+bash benchmark/run_scenario.sh etis dacs minent_mmd fda
+```
+
+```bash
+python -m benchmark.report --scenario etis
+```
+
+| Command | Purpose |
+|---|---|
+| `python -m benchmark.uda grid --scenario <s> --algorithms <m...>` | Adapt every source run with the given methods and λ values |
+| `python -m benchmark.uda train --algorithm continue --scenario <s> --lams 0` | Matched continued-training control |
+| `python -m benchmark.uda train --algorithm continue_source --scenario all --lams 0` | Source-only continuation (no target data) |
+| `python -m benchmark.uda train --algorithm dacs_nopaste\|dacs_noweight --scenario <s> --lams 0.5` | DACS ablations |
+| `python -m benchmark.score run --pool <pool> --scenarios source_val <s>` | Native-resolution metrics and validator scores |
+| `python -m benchmark.analyze --pools <pools...> --name <name>` | Oracle, selection loss, label budget |
+| `python -m benchmark.report --scenario <s>` | Paired-gain table for one target |
+| `python -m benchmark.compare` | H2, endpoints, deployment rule, controls, ablations |
+| `python -m benchmark.selection` | Checkpoint selection (needs `analyze` runs `v2_source_only`, `v2_all`, `v2_full`) |
+| `python -m benchmark.postprocess` | Small-component post-processing of deployed models |
+| `python -m benchmark.curves` | λ and training-length curves, small-polyp Dice |
+| `python -m benchmark.holdout` | Frozen PolypDB Hanoi test (evaluated once) |
+| `python -m benchmark.newpatients` | Frozen FAR new-patient test (evaluated once) |
+| `python -m benchmark.summary_figures` | Summary figures from the tables in git |
+| `python -m benchmark.qualitative` | Rule-chosen qualitative examples |
+| `python -m benchmark.extra --pool <pool>` | Optional feature-based and second-round validators |
+
+## Reproducing the results
+
+The commands for every run, including the phase-2 controls, the ablations, the holdout and the new-patient test, are recorded with their pre-registered settings in [benchmark_protocol.yaml](benchmark_protocol.yaml) (`amendment_v2`). The full GPU sequence:
 
 ```bash
 bash benchmark/run_scenario.sh clinicdb minent advent dann mmd bnm mcc meanteacher fda minent_mmd dacs
@@ -126,34 +155,41 @@ bash benchmark/run_scenario.sh etis minent mmd dann fda minent_mmd dacs
 ```
 
 ```bash
+bash benchmark/run_scenario.sh colondb minent mmd dann fda minent_mmd dacs
+```
+
+```bash
+EVERY=400 bash benchmark/run_scenario.sh polypgen fda minent_mmd dacs
+```
+
+```bash
 LAMS=0.5 EVERY=400 bash benchmark/run_scenario.sh far fda minent_mmd dacs
 ```
 
-ColonDB 与 ETIS 相同；PolypGen 用 `EVERY=400`、三个 λ。第 2 阶段对照与消融、第 3 阶段留出集、FAR 新患者检验的命令见 [benchmark_protocol.yaml](benchmark_protocol.yaml) 的 `amendment_v2` 和上面的代码表。
-
-**汇总表与图（CPU）。** `benchmark.report`（每个目标）、`benchmark.compare`、`benchmark.selection`、`benchmark.postprocess`、`benchmark.curves`、`benchmark.summary_figures`、`benchmark.holdout`、`benchmark.newpatients`。
-
-**不用 GPU 复核。** [results/manifests/deployed_models.csv](results/manifests/deployed_models.csv) 列出每条轨迹部署的检查点及其 SHA-256；`results/per_image/<目标>.csv.gz` 是这些模型的逐图 Dice 与原尺寸前景比例。
+**Without a GPU.** The checkpoints deployed by every trajectory, with their SHA-256, are in [results/manifests/deployed_models.csv](results/manifests/deployed_models.csv). Their per-image scores are in `results/per_image/`. This recomputes ClinicDB's paired DACS gain (+0.082) from tracked files only:
 
 ```bash
-.venv/Scripts/python.exe -m benchmark.manifest verify
+python -m benchmark.manifest verify
 ```
 
-它只用 Git 中的文件重算 ClinicDB 上 DACS 相对 SourceOnly 的配对收益。运行环境（Python、PyTorch、CUDA、GPU、`pip freeze`）记录在 [results/manifests/environment.txt](results/manifests/environment.txt)。
+A complete rerun on a new machine has not been done. The checks so far:
+- the split files read from `benchmark/splits/` match the originals line by line;
+- `verify` reproduces the published gain.
 
-## 环境
+## Methods compared
 
-训练和评价在 Windows + CUDA 上运行（RTX 5070）。仓库不包含数据集、权重或缓存；检查点和逐图分数在被 Git 忽略的 `runs/`，写报告需要的汇总表和图在 `results/benchmark/`。
+| Group | Methods |
+|---|---|
+| References | SourceOnly; continued-training control (joint forward, λ=0); source-only continuation (no target forward) |
+| Normalisation | AdaBN |
+| Output level | MinEnt, AdvEnt, pixel BNM, pixel MCC |
+| Feature level | DANN, multi-kernel MMD |
+| Input level | FDA |
+| Teacher | Mean Teacher |
+| Segmentation-specific | MinEnt+MMD; DACS (cross-domain paste + EMA-teacher pseudo-labels); DACS without paste; DACS without confidence weight |
 
-新 Windows 环境：
+Each deployed model is the checkpoint with the best source-validation Dice within its training run. This rule was fixed in advance; target labels are used only for evaluation.
 
-```powershell
-.\scripts\setup_windows.ps1
-```
+## Citation
 
-示例：在 ETIS 上跑三个方法的完整流程并生成报告：
-
-```bash
-bash benchmark/run_scenario.sh etis dacs minent_mmd fda
-.venv/Scripts/python.exe -m benchmark.report --scenario etis
-```
+If you use this code or the results, please cite the datasets and methods listed in [REPORT_BASIS.md](REPORT_BASIS.md#references). The datasets keep their own licences; no medical images are distributed in this repository.
